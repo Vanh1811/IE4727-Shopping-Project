@@ -62,7 +62,7 @@ include __DIR__ . '/includes/header.php';
                 <article class="product-card">
                     <a class="product-card__image product-card__image--<?= htmlspecialchars($product['tone'], ENT_QUOTES, 'UTF-8') ?>" href="product.php" aria-label="View <?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>">
                         <?php if (!empty($product['badge'])): ?><span class="product-badge"><?= htmlspecialchars($product['badge'], ENT_QUOTES, 'UTF-8') ?></span><?php endif; ?>
-                        <img class="product-card__image-art" src="<?= htmlspecialchars($product['image'], ENT_QUOTES, 'UTF-8') ?>" alt="">
+                        <img class="product-card__image-art" src="<?= htmlspecialchars($product['image'], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?> product image">
                     </a>
                     <div class="product-card__details">
                         <div>
@@ -103,7 +103,7 @@ include __DIR__ . '/includes/header.php';
                 <article class="product-card">
                     <a class="product-card__image product-card__image--<?= htmlspecialchars($product['tone'], ENT_QUOTES, 'UTF-8') ?>" href="product.php" aria-label="View <?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>">
                         <?php if (!empty($product['badge'])): ?><span class="product-badge"><?= htmlspecialchars($product['badge'], ENT_QUOTES, 'UTF-8') ?></span><?php endif; ?>
-                        <img class="product-card__image-art" src="<?= htmlspecialchars($product['image'], ENT_QUOTES, 'UTF-8') ?>" alt="">
+                        <img class="product-card__image-art" src="<?= htmlspecialchars($product['image'], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?> product image">
                     </a>
                     <div class="product-card__details">
                         <div>
@@ -132,25 +132,25 @@ include __DIR__ . '/includes/header.php';
         </div>
         <div class="style-grid">
             <a class="style-card style-card--casual" href="shop.php">
-                <img class="style-card__image" src="images/categories/casual.svg" alt="">
+                <img class="style-card__image" src="images/categories/casual.svg" alt="Casual fashion style collection">
                 <span class="style-card__number">01</span>
                 <span class="style-card__name">Casual</span>
                 <span class="style-card__link">Explore <span aria-hidden="true">↗</span></span>
             </a>
             <a class="style-card style-card--formal" href="shop.php">
-                <img class="style-card__image" src="images/categories/formal.svg" alt="">
+                <img class="style-card__image" src="images/categories/formal.svg" alt="Formal fashion style collection">
                 <span class="style-card__number">02</span>
                 <span class="style-card__name">Formal</span>
                 <span class="style-card__link">Explore <span aria-hidden="true">↗</span></span>
             </a>
             <a class="style-card style-card--party" href="shop.php">
-                <img class="style-card__image" src="images/categories/party.svg" alt="">
+                <img class="style-card__image" src="images/categories/party.svg" alt="Party fashion style collection">
                 <span class="style-card__number">03</span>
                 <span class="style-card__name">Party</span>
                 <span class="style-card__link">Explore <span aria-hidden="true">↗</span></span>
             </a>
             <a class="style-card style-card--gym" href="shop.php">
-                <img class="style-card__image" src="images/categories/gym.svg" alt="">
+                <img class="style-card__image" src="images/categories/gym.svg" alt="Gym fashion style collection">
                 <span class="style-card__number">04</span>
                 <span class="style-card__name">Gym</span>
                 <span class="style-card__link">Explore <span aria-hidden="true">↗</span></span>
@@ -161,13 +161,13 @@ include __DIR__ . '/includes/header.php';
 
 <section class="feature-panel" id="about">
     <div class="container feature-panel__layout">
-        <div class="feature-panel__art" aria-label="Abstract customisation placeholder" role="img">
+        <div class="feature-panel__art" aria-label="F2B SHOP custom design preview graphic" role="img">
             <span class="feature-panel__stamp">MAKE<br>IT YOURS</span>
             <span class="feature-panel__line"></span>
             <span class="feature-panel__circle"></span>
         </div>
         <div class="feature-panel__copy">
-            <p class="eyebrow">Customization / Coming soon</p>
+            <p class="eyebrow">F2B CUSTOM / Design your own</p>
             <h2 class="section-heading">Create something that feels like you.</h2>
             <p>Shape your design, review the mock-up, and approve the final look before production. Your next favourite piece should start with your point of view.</p>
             <div class="feature-panel__actions">
@@ -178,32 +178,62 @@ include __DIR__ . '/includes/header.php';
     </div>
 </section>
 
-<section class="section" id="reviews">
+<section class="section section--reviews" id="reviews">
     <div class="container">
         <div class="section-heading-row">
             <div>
                 <p class="eyebrow">From the community</p>
-                <h2 class="section-heading">What people are saying</h2>
+                <h2 class="section-heading">WHAT PEOPLE ARE SAYING</h2>
             </div>
         </div>
         <div class="review-grid">
-            <blockquote class="review-card"><div class="rating" aria-label="Rated 5 out of 5">★★★★★</div><p>“The kind of pieces that make getting dressed feel effortless.”</p><cite>— Aisha, Singapore</cite></blockquote>
-            <blockquote class="review-card"><div class="rating" aria-label="Rated 5 out of 5">★★★★★</div><p>“Thoughtful shapes, easy colours, and quality I can feel.”</p><cite>— Marcus, Kuala Lumpur</cite></blockquote>
-            <blockquote class="review-card"><div class="rating" aria-label="Rated 4 out of 5">★★★★☆</div><p>“F2B SHOP gives my wardrobe a point of view without trying too hard.”</p><cite>— Jamie, Melbourne</cite></blockquote>
+            <article class="review-card">
+                <div class="review-card__header">
+                    <div class="review-card__identity"><span class="review-card__initial" aria-hidden="true">A</span><div><h3>Aisha Tan</h3><p>Singapore</p></div></div>
+                    <span class="review-card__mark" aria-hidden="true">“</span>
+                </div>
+                <div class="review-card__rating" aria-label="Rated 5 out of 5"><span aria-hidden="true">★★★★★</span><span class="sr-only">5 out of 5 stars</span></div>
+                <blockquote cite="Aisha Tan">The kind of pieces that make getting dressed feel effortless.</blockquote>
+            </article>
+            <article class="review-card">
+                <div class="review-card__header">
+                    <div class="review-card__identity"><span class="review-card__initial" aria-hidden="true">M</span><div><h3>Marcus Lim</h3><p>Kuala Lumpur</p></div></div>
+                    <span class="review-card__mark" aria-hidden="true">“</span>
+                </div>
+                <div class="review-card__rating" aria-label="Rated 5 out of 5"><span aria-hidden="true">★★★★★</span><span class="sr-only">5 out of 5 stars</span></div>
+                <blockquote cite="Marcus Lim">Thoughtful shapes, easy colours, and quality I can feel.</blockquote>
+            </article>
+            <article class="review-card">
+                <div class="review-card__header">
+                    <div class="review-card__identity"><span class="review-card__initial" aria-hidden="true">J</span><div><h3>Jamie Wong</h3><p>Melbourne</p></div></div>
+                    <span class="review-card__mark" aria-hidden="true">“</span>
+                </div>
+                <div class="review-card__rating" aria-label="Rated 4 out of 5"><span aria-hidden="true">★★★★☆</span><span class="sr-only">4 out of 5 stars</span></div>
+                <blockquote cite="Jamie Wong">F2B SHOP gives my wardrobe a point of view without trying too hard.</blockquote>
+            </article>
+            <article class="review-card">
+                <div class="review-card__header">
+                    <div class="review-card__identity"><span class="review-card__initial" aria-hidden="true">N</span><div><h3>Nur Farah</h3><p>Johor Bahru</p></div></div>
+                    <span class="review-card__mark" aria-hidden="true">“</span>
+                </div>
+                <div class="review-card__rating" aria-label="Rated 5 out of 5"><span aria-hidden="true">★★★★★</span><span class="sr-only">5 out of 5 stars</span></div>
+                <blockquote cite="Nur Farah">The fit feels considered, and every piece works harder than I expected.</blockquote>
+            </article>
         </div>
     </div>
 </section>
 
 <section class="newsletter-section" id="contact">
     <div class="container newsletter-box">
-        <div>
-            <p class="eyebrow">Stay in the loop</p>
-            <h2 class="section-heading">The next good thing, in your inbox.</h2>
-            <p class="body-text">A quiet note about new drops, design stories, and things worth wearing.</p>
+        <div class="newsletter-copy">
+            <p class="eyebrow">The F2B letter</p>
+            <h2 class="section-heading">Good things, in your inbox.</h2>
+            <p class="body-text">A monthly note about new drops, design stories, and pieces worth wearing.</p>
+            <p class="newsletter-note">No noise. Just the good stuff.</p>
         </div>
         <form class="newsletter-form" action="index.php" method="post">
             <label class="sr-only" for="newsletter-email">Email address</label>
-            <input id="newsletter-email" name="email" type="email" placeholder="Your email address" required>
+            <input id="newsletter-email" name="email" type="email" placeholder="Your email address" autocomplete="email" required>
             <button class="button button--dark" type="submit">Subscribe <span aria-hidden="true">→</span></button>
         </form>
     </div>
