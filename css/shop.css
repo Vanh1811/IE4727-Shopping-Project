@@ -90,6 +90,135 @@
     font-size: 0.72rem;
 }
 
+/* Shop Filters */
+.shop-filter-options {
+    display: grid;
+    gap: 0.7rem;
+    margin-top: var(--space-3);
+}
+
+.shop-filter-option {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    color: var(--color-text);
+    cursor: pointer;
+    font-size: 0.82rem;
+}
+
+.shop-filter-option:hover {
+    color: var(--color-ink);
+}
+
+.shop-filter-option input {
+    width: 1rem;
+    height: 1rem;
+    margin: 0;
+    accent-color: var(--color-ink);
+}
+
+.shop-price-fields {
+    display: grid;
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+}
+
+.shop-form-label {
+    display: block;
+    margin-bottom: 0.4rem;
+    color: var(--color-ink);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.shop-price-input {
+    display: flex;
+    align-items: center;
+    min-height: 2.7rem;
+    padding-left: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-background);
+    color: var(--color-muted);
+}
+
+.shop-price-input:focus-within {
+    border-color: var(--color-ink);
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+}
+
+.shop-price-input input,
+.shop-search input {
+    width: 100%;
+    min-width: 0;
+    min-height: 2.7rem;
+    padding: 0.55rem 0.75rem;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--color-ink);
+    font-size: 0.82rem;
+}
+
+.shop-filter-actions {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-4);
+}
+
+.shop-filter-submit {
+    width: 100%;
+    min-height: 2.8rem;
+    font-size: 0.8rem;
+}
+
+.shop-clear-filters {
+    justify-self: center;
+    padding: 0.2rem 0.4rem;
+    border: 0;
+    background: transparent;
+    color: var(--color-muted);
+    cursor: pointer;
+    font-size: 0.78rem;
+    text-decoration: underline;
+    text-underline-offset: 0.2rem;
+}
+
+.shop-clear-filters:hover {
+    color: var(--color-ink);
+}
+
+/* Shop Search */
+.shop-search {
+    display: flex;
+    align-items: end;
+    max-width: 34rem;
+    gap: var(--space-2);
+    margin-bottom: var(--space-5);
+}
+
+.shop-search__field {
+    flex: 1;
+    min-width: 0;
+}
+
+.shop-search__field input {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-background);
+}
+
+.shop-search__field input:focus {
+    border-color: var(--color-ink);
+}
+
+.shop-search__submit {
+    min-height: 2.7rem;
+    min-width: 6rem;
+    font-size: 0.8rem;
+}
+
 .shop-catalogue {
     min-width: 0;
 }
@@ -111,7 +240,7 @@
     font-weight: 700;
 }
 
-.shop-sort-placeholder {
+.shop-sort {
     display: flex;
     align-items: center;
     gap: var(--space-2);
@@ -119,7 +248,7 @@
     font-size: 0.78rem;
 }
 
-.shop-sort-placeholder select {
+.shop-sort select {
     min-width: 8rem;
     min-height: 2.5rem;
     padding: 0.45rem 0.75rem;

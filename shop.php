@@ -133,26 +133,82 @@ $shopProducts = [
                     <span aria-hidden="true">+</span>
                 </div>
 
-                <section class="shop-filter-section" aria-labelledby="category-heading">
-                    <h3 id="category-heading">Categories</h3>
-                    <p>Browse by category</p>
-                    <p>Filter options coming soon.</p>
-                </section>
+                <form class="shop-filter-form" action="shop.php" method="get">
+                    <section class="shop-filter-section" aria-labelledby="category-heading">
+                        <h3 id="category-heading">Categories</h3>
+                        <div class="shop-filter-options">
+                            <label class="shop-filter-option">
+                                <input type="checkbox" name="category[]" value="t-shirts">
+                                <span>T-Shirts</span>
+                            </label>
+                            <label class="shop-filter-option">
+                                <input type="checkbox" name="category[]" value="shirts">
+                                <span>Shirts</span>
+                            </label>
+                            <label class="shop-filter-option">
+                                <input type="checkbox" name="category[]" value="hoodies">
+                                <span>Hoodies</span>
+                            </label>
+                            <label class="shop-filter-option">
+                                <input type="checkbox" name="category[]" value="jackets">
+                                <span>Jackets</span>
+                            </label>
+                            <label class="shop-filter-option">
+                                <input type="checkbox" name="category[]" value="pants">
+                                <span>Pants</span>
+                            </label>
+                            <label class="shop-filter-option">
+                                <input type="checkbox" name="category[]" value="accessories">
+                                <span>Accessories</span>
+                            </label>
+                        </div>
+                    </section>
 
-                <section class="shop-filter-section" aria-labelledby="price-heading">
-                    <h3 id="price-heading">Price</h3>
-                    <p>Choose a price range</p>
-                    <p>Filter options coming soon.</p>
-                </section>
+                    <section class="shop-filter-section" aria-labelledby="price-heading">
+                        <h3 id="price-heading">Price</h3>
+                        <div class="shop-price-fields">
+                            <div class="shop-price-field">
+                                <label class="shop-form-label" for="min-price">Min Price</label>
+                                <div class="shop-price-input">
+                                    <span aria-hidden="true">$</span>
+                                    <input id="min-price" name="min_price" type="number" min="0" step="1" placeholder="0">
+                                </div>
+                            </div>
+                            <div class="shop-price-field">
+                                <label class="shop-form-label" for="max-price">Max Price</label>
+                                <div class="shop-price-input">
+                                    <span aria-hidden="true">$</span>
+                                    <input id="max-price" name="max_price" type="number" min="0" step="1" placeholder="200">
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div class="shop-filter-actions">
+                        <button class="button button--dark shop-filter-submit" type="submit">Apply Filters</button>
+                        <button class="shop-clear-filters" type="button">Clear Filters</button>
+                    </div>
+                </form>
             </aside>
 
             <section class="shop-catalogue" aria-labelledby="catalogue-heading">
+                <form class="shop-search" action="shop.php" method="get">
+                    <div class="shop-search__field">
+                        <label class="shop-form-label" for="catalogue-search">Search products</label>
+                        <input id="catalogue-search" name="search" type="search" placeholder="Search products..." autocomplete="off">
+                    </div>
+                    <button class="button button--dark shop-search__submit" type="submit">Search</button>
+                </form>
+
                 <div class="shop-toolbar">
                     <p id="catalogue-heading" class="shop-result-count">Showing 1&ndash;12 of 24 Products</p>
-                    <div class="shop-sort-placeholder">
+                    <div class="shop-sort">
                         <label for="sort-products">Sort by</label>
-                        <select id="sort-products" disabled>
-                            <option>Featured</option>
+                        <select id="sort-products" name="sort">
+                            <option value="featured">Featured</option>
+                            <option value="newest">Newest</option>
+                            <option value="price_asc">Price: Low to High</option>
+                            <option value="price_desc">Price: High to Low</option>
                         </select>
                     </div>
                 </div>
