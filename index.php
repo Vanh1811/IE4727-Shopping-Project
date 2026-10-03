@@ -45,33 +45,36 @@ include __DIR__ . '/includes/header.php';
         <div class="section-heading-row">
             <div>
                 <p class="eyebrow">Just in</p>
-                <h2 class="section-heading">New arrivals</h2>
+                <h2 class="section-heading">NEW ARRIVALS</h2>
             </div>
-            <a class="text-link" href="shop.php">View all <span aria-hidden="true">↗</span></a>
+            <a class="button button--outline button--small" href="shop.php">View all <span aria-hidden="true">→</span></a>
         </div>
         <div class="product-grid product-grid--four">
             <?php
             $newArrivals = [
-                ['name' => 'Studio Overshirt', 'price' => '$68', 'meta' => 'Layering essential', 'tone' => 'sand'],
-                ['name' => 'Everyday Pleat Trouser', 'price' => '$74', 'meta' => 'Relaxed tailoring', 'tone' => 'mist'],
-                ['name' => 'Contour Rib Tee', 'price' => '$36', 'meta' => 'Soft cotton jersey', 'tone' => 'coral'],
-                ['name' => 'Transit Crossbody', 'price' => '$52', 'meta' => 'Daily carry', 'tone' => 'slate'],
+                ['name' => 'Studio Overshirt', 'price' => '$68', 'meta' => 'Layering essential', 'tone' => 'sand', 'image' => 'images/products/studio-overshirt.svg', 'rating' => '4.8', 'badge' => 'New'],
+                ['name' => 'Everyday Pleat Trouser', 'price' => '$74', 'oldPrice' => '$88', 'meta' => 'Relaxed tailoring', 'tone' => 'mist', 'image' => 'images/products/everyday-pleat-trouser.svg', 'rating' => '4.7', 'badge' => '-16%'],
+                ['name' => 'Contour Rib Tee', 'price' => '$36', 'meta' => 'Soft cotton jersey', 'tone' => 'coral', 'image' => 'images/products/contour-rib-tee.svg', 'rating' => '4.9', 'badge' => 'New'],
+                ['name' => 'Transit Crossbody', 'price' => '$52', 'oldPrice' => '$64', 'meta' => 'Daily carry', 'tone' => 'slate', 'image' => 'images/products/transit-crossbody.svg', 'rating' => '4.8', 'badge' => '-19%'],
             ];
             foreach ($newArrivals as $product):
             ?>
                 <article class="product-card">
                     <a class="product-card__image product-card__image--<?= htmlspecialchars($product['tone'], ENT_QUOTES, 'UTF-8') ?>" href="product.php" aria-label="View <?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>">
-                        <span class="product-badge">New</span>
-                        <span class="image-placeholder" aria-hidden="true">F2B SHOP / 01</span>
+                        <?php if (!empty($product['badge'])): ?><span class="product-badge"><?= htmlspecialchars($product['badge'], ENT_QUOTES, 'UTF-8') ?></span><?php endif; ?>
+                        <img class="product-card__image-art" src="<?= htmlspecialchars($product['image'], ENT_QUOTES, 'UTF-8') ?>" alt="">
                     </a>
                     <div class="product-card__details">
                         <div>
                             <h3><a href="product.php"><?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?></a></h3>
                             <p><?= htmlspecialchars($product['meta'], ENT_QUOTES, 'UTF-8') ?></p>
                         </div>
-                        <strong><?= htmlspecialchars($product['price'], ENT_QUOTES, 'UTF-8') ?></strong>
+                        <div class="price-group">
+                            <strong><?= htmlspecialchars($product['price'], ENT_QUOTES, 'UTF-8') ?></strong>
+                            <?php if (!empty($product['oldPrice'])): ?><del><?= htmlspecialchars($product['oldPrice'], ENT_QUOTES, 'UTF-8') ?></del><?php endif; ?>
+                        </div>
                     </div>
-                    <div class="rating" aria-label="Rated 4.8 out of 5">★★★★★ <span>4.8</span></div>
+                    <div class="rating" aria-label="Rated <?= htmlspecialchars($product['rating'], ENT_QUOTES, 'UTF-8') ?> out of 5">★★★★★ <span><?= htmlspecialchars($product['rating'], ENT_QUOTES, 'UTF-8') ?></span></div>
                 </article>
             <?php endforeach; ?>
         </div>
@@ -83,32 +86,36 @@ include __DIR__ . '/includes/header.php';
         <div class="section-heading-row">
             <div>
                 <p class="eyebrow">Community favourites</p>
-                <h2 class="section-heading">Top selling</h2>
+                <h2 class="section-heading">TOP SELLING</h2>
             </div>
-            <a class="text-link" href="shop.php">View all <span aria-hidden="true">↗</span></a>
+            <a class="button button--outline button--small" href="shop.php">View all <span aria-hidden="true">→</span></a>
         </div>
         <div class="product-grid product-grid--four">
             <?php
             $topSelling = [
-                ['name' => 'Form Tee', 'price' => '$32', 'meta' => 'Heavyweight cotton', 'tone' => 'ink'],
-                ['name' => 'Open Line Shirt', 'price' => '$58', 'meta' => 'Easy fit shirt', 'tone' => 'cream'],
-                ['name' => 'Arc Denim', 'price' => '$82', 'meta' => 'Straight-leg denim', 'tone' => 'blue'],
-                ['name' => 'Soft Frame Tote', 'price' => '$46', 'meta' => 'Everyday carry', 'tone' => 'olive'],
+                ['name' => 'Form Tee', 'price' => '$32', 'meta' => 'Heavyweight cotton', 'tone' => 'ink', 'image' => 'images/products/form-tee.svg', 'rating' => '4.9', 'badge' => 'Best seller'],
+                ['name' => 'Open Line Shirt', 'price' => '$58', 'meta' => 'Easy fit shirt', 'tone' => 'cream', 'image' => 'images/products/open-line-shirt.svg', 'rating' => '4.8'],
+                ['name' => 'Arc Denim', 'price' => '$82', 'oldPrice' => '$96', 'meta' => 'Straight-leg denim', 'tone' => 'blue', 'image' => 'images/products/arc-denim.svg', 'rating' => '4.9', 'badge' => '-15%'],
+                ['name' => 'Soft Frame Tote', 'price' => '$46', 'meta' => 'Everyday carry', 'tone' => 'olive', 'image' => 'images/products/soft-frame-tote.svg', 'rating' => '4.7'],
             ];
             foreach ($topSelling as $product):
             ?>
                 <article class="product-card">
                     <a class="product-card__image product-card__image--<?= htmlspecialchars($product['tone'], ENT_QUOTES, 'UTF-8') ?>" href="product.php" aria-label="View <?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>">
-                        <span class="image-placeholder" aria-hidden="true">F2B SHOP / 02</span>
+                        <?php if (!empty($product['badge'])): ?><span class="product-badge"><?= htmlspecialchars($product['badge'], ENT_QUOTES, 'UTF-8') ?></span><?php endif; ?>
+                        <img class="product-card__image-art" src="<?= htmlspecialchars($product['image'], ENT_QUOTES, 'UTF-8') ?>" alt="">
                     </a>
                     <div class="product-card__details">
                         <div>
                             <h3><a href="product.php"><?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?></a></h3>
                             <p><?= htmlspecialchars($product['meta'], ENT_QUOTES, 'UTF-8') ?></p>
                         </div>
-                        <strong><?= htmlspecialchars($product['price'], ENT_QUOTES, 'UTF-8') ?></strong>
+                        <div class="price-group">
+                            <strong><?= htmlspecialchars($product['price'], ENT_QUOTES, 'UTF-8') ?></strong>
+                            <?php if (!empty($product['oldPrice'])): ?><del><?= htmlspecialchars($product['oldPrice'], ENT_QUOTES, 'UTF-8') ?></del><?php endif; ?>
+                        </div>
                     </div>
-                    <div class="rating" aria-label="Rated 4.9 out of 5">★★★★★ <span>4.9</span></div>
+                    <div class="rating" aria-label="Rated <?= htmlspecialchars($product['rating'], ENT_QUOTES, 'UTF-8') ?> out of 5">★★★★★ <span><?= htmlspecialchars($product['rating'], ENT_QUOTES, 'UTF-8') ?></span></div>
                 </article>
             <?php endforeach; ?>
         </div>

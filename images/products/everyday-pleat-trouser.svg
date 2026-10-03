@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 560" role="img" aria-labelledby="title">
+  <title>Everyday pleat trouser illustration</title>
+  <ellipse cx="240" cy="510" rx="118" ry="18" fill="#aeb9b5" opacity=".5"/>
+  <path d="M145 90h190l-8 128-28 275h-74l-17-224-17 224h-74l28-275z" fill="#566d6b"/>
+  <path d="M145 90h190v57H145z" fill="#405452"/>
+  <path d="M202 96v118M278 96v118" fill="none" stroke="#8da19d" stroke-width="5"/>
+  <path d="M192 218h96M136 493h89M255 493h87" fill="none" stroke="#334442" stroke-width="6"/>
+  <path d="M173 118h-32M307 118h32" fill="none" stroke="#b9c8c2" stroke-width="4"/>
+</svg>

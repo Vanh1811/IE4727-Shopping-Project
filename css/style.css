@@ -371,6 +371,12 @@ select:focus-visible {
     width: 100%;
 }
 
+.button--small {
+    min-height: 2.7rem;
+    padding: 0.65rem 1rem;
+    font-size: 0.78rem;
+}
+
 .text-link {
     display: inline-flex;
     align-items: center;
@@ -565,6 +571,19 @@ select:focus-visible {
     border: 1px solid rgba(23, 23, 23, 0.2);
     border-radius: 50%;
     content: '';
+}
+
+.product-card__image-art {
+    position: relative;
+    z-index: 1;
+    width: min(76%, 13rem);
+    max-height: 82%;
+    object-fit: contain;
+    transition: transform 180ms ease;
+}
+
+.product-card:hover .product-card__image-art {
+    transform: scale(1.04) rotate(1deg);
 }
 
 .product-card__image--sand { background: #e3d4be; }
