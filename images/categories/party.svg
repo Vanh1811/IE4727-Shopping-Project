@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 760" role="img" aria-labelledby="title">
+  <title>Party style category</title>
+  <rect width="640" height="760" fill="#b86f78"/>
+  <circle cx="120" cy="170" r="92" fill="#f3c0ab" opacity=".65"/>
+  <circle cx="522" cy="490" r="158" fill="#8f4c64" opacity=".7"/>
+  <path d="M225 174c-5-39 23-68 66-68s71 29 66 68c-5 34-28 54-66 54s-61-20-66-54z" fill="#c99582"/>
+  <path d="M215 168c13-46 38-67 77-67 31 0 56 14 70 43-48-10-90 12-126 43z" fill="#30252d"/>
+  <path d="M180 285c33-54 66-79 111-79s78 25 111 79l54 394H126z" fill="#e1a4aa"/>
+  <path d="M219 273 291 387l72-114 34 42-63 125h-86l-63-125z" fill="#f6d8d1"/>
+  <path d="M169 326 92 487M413 326l77 161" stroke="#e1a4aa" stroke-width="34" stroke-linecap="round"/>
+  <path d="M182 570h217" stroke="#a65970" stroke-width="5" opacity=".75"/>
+</svg>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 760" role="img" aria-labelledby="title">
+  <title>Formal style category</title>
+  <rect width="640" height="760" fill="#576169"/>
+  <path d="M0 720 190 490l172 89 278-188v369H0z" fill="#303a3d" opacity=".7"/>
+  <circle cx="470" cy="176" r="132" fill="#a8b4b5" opacity=".45"/>
+  <path d="M214 193c-5-40 24-69 66-69s71 29 66 69c-5 34-28 53-66 53s-61-19-66-53z" fill="#b98d75"/>
+  <path d="M205 181c8-46 33-68 76-68 37 0 63 20 70 58-36-18-82-11-113 20z" fill="#1d2529"/>
+  <path d="M152 290c40-50 79-71 128-71s88 21 128 71l-29 230H181z" fill="#1f2a2e"/>
+  <path d="m238 251 42 82 42-82 39 39-51 117h-60l-51-117z" fill="#e2ddd1"/>
+  <path d="M181 520h198l50 170H281l-1-122-18 122H113z" fill="#242c30"/>
+  <path d="M161 312 98 486M383 312l63 174" stroke="#1f2a2e" stroke-width="35" stroke-linecap="round"/>
+  <path d="M279 340v105" stroke="#9b7b62" stroke-width="5"/>
+</svg>

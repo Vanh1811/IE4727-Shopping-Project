@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 760" role="img" aria-labelledby="title">
+  <title>Casual style category</title>
+  <rect width="640" height="760" fill="#b58d6d"/>
+  <circle cx="510" cy="130" r="130" fill="#d8b397" opacity=".75"/>
+  <path d="M0 620c150-100 278-85 382 0s176 87 258 12v128H0z" fill="#d9c0a6" opacity=".7"/>
+  <path d="M209 185c-8-44 24-74 67-74s75 30 67 74c-6 36-30 57-67 57s-61-21-67-57z" fill="#d2a486"/>
+  <path d="M201 180c7-47 32-73 76-73 33 0 61 15 72 49-28-18-71-15-108 19z" fill="#272929"/>
+  <path d="M149 295c41-50 76-67 127-67s86 17 127 67l-22 224H171z" fill="#e8d9c8"/>
+  <path d="M171 501h210l34 178H226l-14-106-14 106H86z" fill="#526b6c"/>
+  <path d="M159 319 88 480M385 319l71 161" stroke="#e8d9c8" stroke-width="37" stroke-linecap="round"/>
+  <path d="M188 305h176M188 340h176M188 375h176" stroke="#c3aa91" stroke-width="4" opacity=".8"/>
+</svg>

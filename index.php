@@ -127,23 +127,32 @@ include __DIR__ . '/includes/header.php';
         <div class="section-heading-row">
             <div>
                 <p class="eyebrow">Find your direction</p>
-                <h2 class="section-heading">Browse by style</h2>
+                <h2 class="section-heading">BROWSE BY STYLE</h2>
             </div>
         </div>
         <div class="style-grid">
-            <a class="style-card style-card--minimal" href="shop.php">
+            <a class="style-card style-card--casual" href="shop.php">
+                <img class="style-card__image" src="images/categories/casual.svg" alt="">
                 <span class="style-card__number">01</span>
-                <span class="style-card__name">Minimal</span>
+                <span class="style-card__name">Casual</span>
                 <span class="style-card__link">Explore <span aria-hidden="true">↗</span></span>
             </a>
-            <a class="style-card style-card--utility" href="shop.php">
+            <a class="style-card style-card--formal" href="shop.php">
+                <img class="style-card__image" src="images/categories/formal.svg" alt="">
                 <span class="style-card__number">02</span>
-                <span class="style-card__name">Utility</span>
+                <span class="style-card__name">Formal</span>
                 <span class="style-card__link">Explore <span aria-hidden="true">↗</span></span>
             </a>
-            <a class="style-card style-card--soft" href="shop.php">
+            <a class="style-card style-card--party" href="shop.php">
+                <img class="style-card__image" src="images/categories/party.svg" alt="">
                 <span class="style-card__number">03</span>
-                <span class="style-card__name">Soft form</span>
+                <span class="style-card__name">Party</span>
+                <span class="style-card__link">Explore <span aria-hidden="true">↗</span></span>
+            </a>
+            <a class="style-card style-card--gym" href="shop.php">
+                <img class="style-card__image" src="images/categories/gym.svg" alt="">
+                <span class="style-card__number">04</span>
+                <span class="style-card__name">Gym</span>
                 <span class="style-card__link">Explore <span aria-hidden="true">↗</span></span>
             </a>
         </div>
@@ -158,10 +167,13 @@ include __DIR__ . '/includes/header.php';
             <span class="feature-panel__circle"></span>
         </div>
         <div class="feature-panel__copy">
-            <p class="eyebrow">Your idea, in form</p>
-            <h2 class="section-heading">A little more you.</h2>
-            <p>Our upcoming mock-up experience will help you shape a design, review the details, and make it yours before anything is final.</p>
-            <a class="button button--outline" href="mockup.php">See mock-up preview <span aria-hidden="true">→</span></a>
+            <p class="eyebrow">Customization / Coming soon</p>
+            <h2 class="section-heading">Create something that feels like you.</h2>
+            <p>Shape your design, review the mock-up, and approve the final look before production. Your next favourite piece should start with your point of view.</p>
+            <div class="feature-panel__actions">
+                <a class="button button--light" href="mockup.php">Create Your Style <span aria-hidden="true">→</span></a>
+                <a class="feature-panel__secondary" href="mockup.php">How Custom Orders Work <span aria-hidden="true">↗</span></a>
+            </div>
         </div>
     </div>
 </section>

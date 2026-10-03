@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 760" role="img" aria-labelledby="title">
+  <title>Gym style category</title>
+  <rect width="640" height="760" fill="#697957"/>
+  <path d="M0 570 176 420l170 100 294-194v434H0z" fill="#3e503e" opacity=".75"/>
+  <circle cx="490" cy="138" r="112" fill="#c2c98b" opacity=".5"/>
+  <path d="M224 187c-5-38 22-65 65-65s70 27 65 65c-5 34-27 52-65 52s-60-18-65-52z" fill="#a87861"/>
+  <path d="M216 180c11-43 34-64 73-64 33 0 59 16 69 47-40-17-78-5-110 25z" fill="#1f2922"/>
+  <path d="M176 295c35-47 72-67 113-67s78 20 113 67l-8 202H184z" fill="#d4d8c1"/>
+  <path d="M184 493h214l40 182H284l-4-113-19 113H137z" fill="#2d483b"/>
+  <path d="M177 319 99 455M401 319l77 136" stroke="#d4d8c1" stroke-width="29" stroke-linecap="round"/>
+  <path d="M210 315h158M210 348h158" stroke="#91a77c" stroke-width="5"/>
+</svg>
