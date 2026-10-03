@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 560" role="img" aria-labelledby="title">
+  <title>Transit crossbody bag illustration</title>
+  <ellipse cx="240" cy="486" rx="132" ry="20" fill="#879aa1" opacity=".5"/>
+  <path d="M124 176h232l28 238H96z" fill="#40545c"/>
+  <path d="M144 176c4-108 48-139 96-139s92 31 96 139" fill="none" stroke="#26383f" stroke-width="22"/>
+  <path d="M155 208h170v48H155z" fill="#60777e"/>
+  <path d="M155 280h170v91H155z" fill="#34474f"/>
+  <path d="M202 327h76" stroke="#9eafb1" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="240" cy="232" r="9" fill="#d6b780"/>
+</svg>

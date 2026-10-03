@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 560" role="img" aria-labelledby="title">
+  <title>Form heavyweight tee illustration</title>
+  <ellipse cx="240" cy="500" rx="130" ry="19" fill="#555956" opacity=".45"/>
+  <path d="m181 124-84 48 48 87 42-29v191h106V230l42 29 48-87-84-48c-14 34-32 51-61 51s-47-17-57-51z" fill="#202524"/>
+  <path d="M181 124c11 37 30 53 59 53s48-16 59-53l-25-11h-68z" fill="#4a5350"/>
+  <path d="M228 247h24v70h-24z" fill="#e4d7c6"/>
+  <path d="M150 253h34M296 253h34" stroke="#68716d" stroke-width="5"/>
+</svg>
