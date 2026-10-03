@@ -130,7 +130,6 @@ $shopProducts = [
             <aside class="shop-sidebar" aria-labelledby="filters-heading">
                 <div class="shop-sidebar__heading">
                     <h2 id="filters-heading">Filters</h2>
-                    <span aria-hidden="true">+</span>
                 </div>
 
                 <form class="shop-filter-form" action="shop.php" method="get">
@@ -212,6 +211,13 @@ $shopProducts = [
                         </select>
                     </div>
                 </div>
+
+                <section class="shop-empty-state is-hidden" aria-labelledby="empty-state-heading">
+                    <div class="shop-empty-state__mark" aria-hidden="true">&#8212;</div>
+                    <h2 id="empty-state-heading">No products found</h2>
+                    <p>Try adjusting your search or filters to find something you love.</p>
+                    <button class="button button--outline shop-empty-state__button" type="button">Clear Filters</button>
+                </section>
 
                 <div class="shop-product-grid">
                     <?php foreach ($shopProducts as $index => $product): ?>
