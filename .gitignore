@@ -1,0 +1,32 @@
+# Operating-system files
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+
+# Editor and IDE files
+.vscode/
+.idea/
+*.code-workspace
+*.swp
+*.swo
+
+# Logs, temporary files, and backups
+*.log
+*.tmp
+*.temp
+*.cache
+*.bak
+*.orig
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies and generated directories
+vendor/
+node_modules/
+cache/
+tmp/
