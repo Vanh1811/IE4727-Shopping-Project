@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1100" role="img" aria-labelledby="title description">
+  <title id="title">F2B SHOP editorial fashion composition</title>
+  <desc id="description">An abstract fashion editorial composition with a relaxed figure, sculptural clothing, and warm graphic shapes.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1f2424"/>
+      <stop offset="1" stop-color="#4a514d"/>
+    </linearGradient>
+    <linearGradient id="coat" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d9c8ae"/>
+      <stop offset="1" stop-color="#a98f73"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#101313" flood-opacity=".3"/>
+    </filter>
+  </defs>
+  <rect width="900" height="1100" fill="url(#background)"/>
+  <circle cx="704" cy="200" r="176" fill="#d86b48"/>
+  <circle cx="704" cy="200" r="118" fill="#efb08c" opacity=".48"/>
+  <path d="M-40 850C180 700 350 780 460 930s270 154 510-40v250H-40z" fill="#d8cec0"/>
+  <path d="M-20 892c190-92 342-36 466 74s278 86 454-30" fill="none" stroke="#f1e8dd" stroke-width="3" opacity=".8"/>
+  <path d="M90 184h206M90 210h126" stroke="#f4e9dc" stroke-width="4" opacity=".7"/>
+  <text x="90" y="148" fill="#f4e9dc" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" letter-spacing="8">F2B / 01</text>
+  <g filter="url(#shadow)">
+    <ellipse cx="430" cy="968" rx="188" ry="36" fill="#171b1b" opacity=".45"/>
+    <path d="M360 208c-12-74 35-122 101-122 62 0 109 45 103 122-6 70-43 112-101 112-59 0-94-44-103-112z" fill="#d4ad91"/>
+    <path d="M355 208c7-76 42-122 113-122 54 0 91 26 101 75-31-28-67-38-105-30-35 8-65 29-109 77z" fill="#1a1d1c"/>
+    <path d="M315 335c34-45 76-66 113-75 31 35 83 36 115 0 42 12 80 37 111 75l-42 303H351z" fill="url(#coat)"/>
+    <path d="M428 274c16 33 55 53 87 2l15 58-59 87-60-87z" fill="#f1e0cc"/>
+    <path d="m427 282 44 137 42-137" fill="none" stroke="#725f51" stroke-width="5" opacity=".7"/>
+    <path d="M351 372c-58 50-94 132-112 234l98 27 72-171" fill="url(#coat)"/>
+    <path d="M577 372c54 49 91 131 105 234l-95 27-71-171" fill="url(#coat)"/>
+    <path d="M337 634h264l64 317H488l-14-184-15 184H275z" fill="#26302f"/>
+    <path d="M350 646h238" stroke="#69716a" stroke-width="7" opacity=".7"/>
+    <path d="M353 682h230M347 727h241M339 772h250M330 817h260" stroke="#53605b" stroke-width="4" opacity=".7"/>
+    <path d="M242 593 174 745" stroke="#d4ad91" stroke-width="32" stroke-linecap="round"/>
+    <path d="M685 593 753 745" stroke="#d4ad91" stroke-width="32" stroke-linecap="round"/>
+  </g>
+  <path d="M756 890h74M756 914h44" stroke="#1f2424" stroke-width="4"/>
+  <text x="756" y="858" fill="#1f2424" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" letter-spacing="5">WEAR</text>
+</svg>

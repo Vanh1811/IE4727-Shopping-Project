@@ -279,6 +279,10 @@ select:focus-visible {
     gap: var(--space-8);
 }
 
+.hero-layout > * {
+    min-width: 0;
+}
+
 .eyebrow {
     margin: 0 0 var(--space-2);
     color: var(--color-muted);
@@ -404,75 +408,51 @@ select:focus-visible {
 
 .hero-art {
     position: relative;
-    min-height: 33rem;
+    height: clamp(24rem, 42vw, 42rem);
+    min-height: clamp(24rem, 42vw, 42rem);
     overflow: hidden;
     background: var(--color-ink);
     border-radius: var(--radius-lg);
+    isolation: isolate;
 }
 
 .hero-art::before,
 .hero-art::after {
     position: absolute;
+    z-index: 1;
+    pointer-events: none;
     content: '';
 }
 
 .hero-art::before {
-    inset: 10% 12% 0 15%;
+    inset: 1rem;
     border: 1px solid rgba(255, 255, 255, 0.5);
-    border-bottom: 0;
-    border-radius: 50% 50% 0 0;
-    transform: rotate(-6deg);
+    border-radius: calc(var(--radius-lg) - 0.35rem);
 }
 
 .hero-art::after {
-    right: 7%;
-    bottom: 12%;
-    width: 9rem;
-    height: 9rem;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    border-radius: 50%;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(23, 23, 23, 0.12), transparent 40%, rgba(23, 23, 23, 0.28));
 }
 
-.hero-art__sun {
-    position: absolute;
-    top: 11%;
-    right: 14%;
-    width: 7rem;
-    height: 7rem;
-    background: var(--color-accent);
-    border-radius: 50%;
+.hero-art__image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: inherit;
+    object-fit: cover;
+    transition: transform 400ms ease;
 }
 
-.hero-art__figure {
-    position: absolute;
-    bottom: -4%;
-    left: 28%;
-    width: 45%;
-    height: 78%;
-    background: #bdb6aa;
-    border-radius: 48% 52% 8% 8%;
-    transform: rotate(6deg);
+.hero-art:hover .hero-art__image {
+    transform: scale(1.025);
 }
 
-.hero-art__figure::before {
+.hero-art__overlay {
     position: absolute;
-    top: -4.5rem;
-    left: 18%;
-    width: 8rem;
-    height: 8rem;
-    background: #d8bca8;
-    border-radius: 50%;
-    content: '';
-}
-
-.hero-art__figure span {
-    position: absolute;
-    top: 18%;
-    left: 15%;
-    width: 70%;
-    height: 1px;
-    background: rgba(23, 23, 23, 0.7);
-    transform: rotate(-12deg);
+    z-index: 2;
+    inset: 0;
+    pointer-events: none;
 }
 
 .hero-art__label,
@@ -485,16 +465,15 @@ select:focus-visible {
 }
 
 .hero-art__label {
-    top: 18%;
-    left: 8%;
+    top: 2rem;
+    left: 2rem;
     color: var(--color-accent-soft);
     font-weight: 700;
-    line-height: 1.2;
 }
 
 .hero-art__caption {
-    right: 8%;
-    bottom: 7%;
+    right: 2rem;
+    bottom: 2rem;
 }
 
 .brand-strip {
@@ -1365,7 +1344,18 @@ select:focus-visible {
     }
 
     .hero-art {
-        min-height: 25rem;
+        min-height: 23rem;
+        height: min(75vh, 31rem);
+    }
+
+    .hero-art__label {
+        top: 1.5rem;
+        left: 1.5rem;
+    }
+
+    .hero-art__caption {
+        right: 1.5rem;
+        bottom: 1.5rem;
     }
 
     .brand-strip__items {

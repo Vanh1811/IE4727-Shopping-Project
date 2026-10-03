@@ -7,12 +7,12 @@ include __DIR__ . '/includes/header.php';
 <section class="hero-section">
     <div class="container hero-layout">
         <div class="hero-copy">
-            <p class="eyebrow">Everyday pieces, made expressive</p>
+            <p class="eyebrow">F2B SHOP / The everyday edit</p>
             <h1 class="hero-heading">Wear your <span>style.</span></h1>
-            <p class="hero-text">Discover considered essentials and standout layers made to move with your point of view.</p>
+            <p class="hero-text">Modern essentials and expressive layers for the way you move, made to help every outfit feel like your own.</p>
             <div class="button-row">
-                <a class="button button--dark" href="shop.php">Shop collection <span aria-hidden="true">→</span></a>
-                <a class="text-link" href="#styles">Explore styles <span aria-hidden="true">↘</span></a>
+                <a class="button button--dark" href="shop.php">Shop Now <span aria-hidden="true">→</span></a>
+                <a class="text-link" href="#new-arrivals">Explore the edit <span aria-hidden="true">↘</span></a>
             </div>
             <div class="hero-stats" aria-label="F2B SHOP highlights">
                 <div><strong>200+</strong><span>curated styles</span></div>
@@ -20,22 +20,23 @@ include __DIR__ . '/includes/header.php';
                 <div><strong>4.8/5</strong><span>community rating</span></div>
             </div>
         </div>
-        <div class="hero-art" aria-label="Abstract fashion editorial placeholder" role="img">
-            <div class="hero-art__sun"></div>
-            <div class="hero-art__figure"><span></span></div>
-            <div class="hero-art__label">New<br>perspective</div>
-            <div class="hero-art__caption">F2B SHOP / 01</div>
+        <div class="hero-art">
+            <img class="hero-art__image" src="images/branding/f2b-hero.svg" alt="A F2B SHOP fashion look styled in an editorial setting">
+            <div class="hero-art__overlay" aria-hidden="true">
+                <span class="hero-art__label">F2B SHOP / 01</span>
+                <span class="hero-art__caption">Everyday, reimagined.</span>
+            </div>
         </div>
     </div>
 </section>
 
 <section class="brand-strip" aria-label="F2B SHOP values">
     <div class="container brand-strip__items">
-        <span>Designed for now</span>
+        <span>Original by design</span>
+        <span class="brand-strip__dot" aria-hidden="true"></span>
+        <span>Made for every day</span>
         <span class="brand-strip__dot" aria-hidden="true"></span>
         <span>Made to be yours</span>
-        <span class="brand-strip__dot" aria-hidden="true"></span>
-        <span>Always evolving</span>
     </div>
 </section>
 
