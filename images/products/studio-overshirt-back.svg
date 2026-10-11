@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 560" role="img" aria-labelledby="title">
+  <title>Studio Overshirt back view</title>
+  <ellipse cx="240" cy="506" rx="132" ry="18" fill="#b9aa95" opacity=".45"/>
+  <path d="M165 145 91 201l39 71 41-28v191h138V244l41 28 39-71-74-56-45-17h-62z" fill="#b8734c"/>
+  <path d="M165 145c11 52 34 78 75 78s64-26 75-78" fill="none" stroke="#d29a6e" stroke-width="20"/>
+  <path d="M164 264h152v62H164z" fill="#a55f42" opacity=".75"/>
+  <path d="M164 264h152M164 326h152" fill="none" stroke="#6f4435" stroke-width="4"/>
+  <path d="M130 273h40v163h-40zM310 273h40v163h-40z" fill="#a55f42" opacity=".85"/>
+  <path d="M164 145 91 201M316 145l73 56" fill="none" stroke="#6f4435" stroke-width="5"/>
+</svg>
