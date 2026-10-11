@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 560" role="img" aria-labelledby="title">
+  <title>Studio Overshirt collar and pocket detail</title>
+  <rect width="480" height="560" rx="24" fill="#d7c3a9"/>
+  <path d="M70 490V168c0-44 36-78 80-78h180c44 0 80 34 80 78v322z" fill="#b8734c"/>
+  <path d="M118 113c11 82 51 125 122 125s111-43 122-125" fill="none" stroke="#e3c39f" stroke-width="20"/>
+  <path d="M240 90v390" stroke="#6f4435" stroke-width="6" opacity=".8"/>
+  <path d="M96 278h112v106H96zM272 278h112v106H272z" fill="#c98558" stroke="#6f4435" stroke-width="5"/>
+  <circle cx="240" cy="278" r="8" fill="#f1dfc7"/>
+  <circle cx="240" cy="334" r="8" fill="#f1dfc7"/>
+  <path d="M111 421h258" stroke="#8b5039" stroke-width="5"/>
+</svg>
