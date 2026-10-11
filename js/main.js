@@ -31,19 +31,16 @@
 
     const productPage = document.querySelector('.product-page');
 
-    if (!productPage) {
-        return;
-    }
-
-    const mainImage = productPage.querySelector('#product-main-image');
-    const thumbnails = productPage.querySelectorAll('.product-thumbnail');
-    const colourButtons = productPage.querySelectorAll('.product-swatch');
-    const sizeButtons = productPage.querySelectorAll('.product-size-grid button');
-    const selectedColour = productPage.querySelector('#selected-colour');
-    const quantityValue = productPage.querySelector('#product-quantity-value');
-    const feedback = productPage.querySelector('#product-feedback');
-    const addToCart = productPage.querySelector('#add-to-cart');
-    let quantity = 1;
+    if (productPage) {
+        const mainImage = productPage.querySelector('#product-main-image');
+        const thumbnails = productPage.querySelectorAll('.product-thumbnail');
+        const colourButtons = productPage.querySelectorAll('.product-swatch');
+        const sizeButtons = productPage.querySelectorAll('.product-size-grid button');
+        const selectedColour = productPage.querySelector('#selected-colour');
+        const quantityValue = productPage.querySelector('#product-quantity-value');
+        const feedback = productPage.querySelector('#product-feedback');
+        const addToCart = productPage.querySelector('#add-to-cart');
+        let quantity = 1;
 
     thumbnails.forEach((thumbnail) => {
         thumbnail.addEventListener('click', () => {
@@ -105,4 +102,94 @@
             feedback.textContent = `${quantity} × ${activeColour} Studio Overshirt (${activeSize}) is ready for your bag.`;
         }
     });
+    }
+
+    const cartPage = document.querySelector('.cart-page');
+
+    if (!cartPage) {
+        return;
+    }
+
+    const cartItems = cartPage.querySelectorAll('[data-cart-item]');
+    const cartSubtotal = cartPage.querySelector('#cart-subtotal');
+    const cartTotal = cartPage.querySelector('#cart-total');
+    const cartItemsCount = cartPage.querySelector('#cart-items-count');
+    const cartItemsHeader = cartPage.querySelector('#cart-items-header');
+    const cartSummary = cartPage.querySelector('#cart-summary');
+    const cartEmpty = cartPage.querySelector('#cart-empty');
+
+    const formatCurrency = (value) => '$' + value.toFixed(2);
+
+    const updateCart = () => {
+        let subtotal = 0;
+        let itemCount = 0;
+        let visibleItemCount = 0;
+
+        cartItems.forEach((item) => {
+            if (item.hidden) {
+                return;
+            }
+
+            const price = Number(item.dataset.price) || 0;
+            const quantity = Math.max(1, Number(item.dataset.quantity) || 1);
+            item.dataset.quantity = String(quantity);
+
+            const quantityOutput = item.querySelector('[data-cart-quantity-value]');
+            const lineTotal = item.querySelector('[data-cart-line-total]');
+
+            if (quantityOutput) {
+                quantityOutput.textContent = String(quantity);
+            }
+
+            if (lineTotal) {
+                lineTotal.textContent = formatCurrency(price * quantity);
+            }
+
+            subtotal += price * quantity;
+            itemCount += quantity;
+            visibleItemCount += 1;
+        });
+
+        if (cartSubtotal) {
+            cartSubtotal.textContent = formatCurrency(subtotal);
+        }
+
+        if (cartTotal) {
+            cartTotal.textContent = formatCurrency(subtotal);
+        }
+
+        if (cartItemsCount) {
+            cartItemsCount.textContent = itemCount + ' ' + (itemCount === 1 ? 'item' : 'items');
+        }
+
+        if (cartEmpty) {
+            cartEmpty.hidden = visibleItemCount !== 0;
+        }
+
+        if (cartSummary) {
+            cartSummary.hidden = visibleItemCount === 0;
+        }
+
+        if (cartItemsHeader) {
+            cartItemsHeader.hidden = visibleItemCount === 0;
+        }
+    };
+
+    cartItems.forEach((item) => {
+        item.querySelectorAll('[data-cart-quantity]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const current = Number(item.dataset.quantity) || 1;
+                const delta = button.dataset.cartQuantity === 'increase' ? 1 : -1;
+                item.dataset.quantity = String(Math.max(1, current + delta));
+                updateCart();
+            });
+        });
+
+        item.querySelector('[data-cart-remove]')?.addEventListener('click', () => {
+            item.hidden = true;
+            updateCart();
+        });
+    });
+
+    updateCart();
 })();
