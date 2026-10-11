@@ -12,12 +12,12 @@ $product = [
     'discount' => '-17%',
     'rating' => '4.8',
     'reviewCount' => '24 reviews',
-    'colour' => 'Sand',
+    'colour' => 'Black',
     'description' => 'A relaxed overshirt with a clean line and enough room for the day’s changing plans. Cut from a soft structured cotton blend, it is an easy layer for everyday dressing.',
     'images' => [
-        ['src' => 'images/products/studio-overshirt.svg', 'alt' => 'Studio Overshirt front view in sand'],
+        ['src' => 'images/products/studio-overshirt.svg', 'alt' => 'Studio Overshirt front view'],
         ['src' => 'images/products/studio-overshirt-detail.svg', 'alt' => 'Studio Overshirt collar and pocket detail'],
-        ['src' => 'images/products/studio-overshirt-back.svg', 'alt' => 'Studio Overshirt back view in sand'],
+        ['src' => 'images/products/studio-overshirt-back.svg', 'alt' => 'Studio Overshirt back view'],
         ['src' => 'images/products/studio-overshirt-fit.svg', 'alt' => 'Studio Overshirt styled as an everyday layer'],
     ],
 ];
@@ -43,9 +43,9 @@ include __DIR__ . '/includes/header.php';
                 </div>
                 <div class="product-gallery__thumbs" aria-label="Product image thumbnails">
                     <?php foreach ($product['images'] as $index => $image): ?>
-                        <a class="product-thumbnail<?= $index === 0 ? ' is-active' : '' ?>" href="#product-main-image" aria-label="View <?= htmlspecialchars($image['alt'], ENT_QUOTES, 'UTF-8') ?>">
+                        <button class="product-thumbnail<?= $index === 0 ? ' is-active' : '' ?>" type="button" data-image-src="<?= htmlspecialchars($image['src'], ENT_QUOTES, 'UTF-8') ?>" data-image-alt="<?= htmlspecialchars($image['alt'], ENT_QUOTES, 'UTF-8') ?>" aria-label="View <?= htmlspecialchars($image['alt'], ENT_QUOTES, 'UTF-8') ?>" aria-pressed="<?= $index === 0 ? 'true' : 'false' ?>">
                             <img src="<?= htmlspecialchars($image['src'], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($image['alt'], ENT_QUOTES, 'UTF-8') ?>">
-                        </a>
+                        </button>
                     <?php endforeach; ?>
                 </div>
             </div>
@@ -65,11 +65,12 @@ include __DIR__ . '/includes/header.php';
                 <p class="product-info__description"><?= htmlspecialchars($product['description'], ENT_QUOTES, 'UTF-8') ?></p>
 
                 <fieldset class="product-option">
-                    <legend>Colour: <strong><?= htmlspecialchars($product['colour'], ENT_QUOTES, 'UTF-8') ?></strong></legend>
+                    <legend>Colour: <strong id="selected-colour"><?= htmlspecialchars($product['colour'], ENT_QUOTES, 'UTF-8') ?></strong></legend>
                     <div class="product-swatches" aria-label="Colour options">
-                        <button class="product-swatch product-swatch--sand" type="button" aria-label="Sand" aria-pressed="true"></button>
-                        <button class="product-swatch product-swatch--ink" type="button" aria-label="Ink" aria-pressed="false"></button>
-                        <button class="product-swatch product-swatch--olive" type="button" aria-label="Olive" aria-pressed="false"></button>
+                        <button class="product-swatch product-swatch--black" type="button" data-colour="Black" aria-label="Black" aria-pressed="true"></button>
+                        <button class="product-swatch product-swatch--white" type="button" data-colour="White" aria-label="White" aria-pressed="false"></button>
+                        <button class="product-swatch product-swatch--navy" type="button" data-colour="Navy" aria-label="Navy" aria-pressed="false"></button>
+                        <button class="product-swatch product-swatch--green" type="button" data-colour="Green" aria-label="Green" aria-pressed="false"></button>
                     </div>
                 </fieldset>
 
@@ -80,16 +81,24 @@ include __DIR__ . '/includes/header.php';
                         <a href="#size-guide">Size guide</a>
                     </div>
                     <div class="product-size-grid" aria-label="Size options">
-                        <button type="button">XS</button>
-                        <button type="button">S</button>
-                        <button type="button">M</button>
-                        <button type="button">L</button>
-                        <button type="button">XL</button>
+                        <button type="button" data-size="S" aria-pressed="false">S</button>
+                        <button type="button" data-size="M" aria-pressed="false">M</button>
+                        <button type="button" data-size="L" aria-pressed="false">L</button>
+                        <button type="button" data-size="XL" aria-pressed="false">XL</button>
                     </div>
                 </fieldset>
 
-                <button class="button button--dark product-info__add" type="button">Add to bag <span aria-hidden="true">→</span></button>
-                <p class="product-info__note">Select a colour and size to continue.</p>
+                <div class="product-quantity" aria-label="Quantity selector">
+                    <span class="product-quantity__label">Quantity</span>
+                    <div class="product-quantity__controls">
+                        <button type="button" data-quantity-action="decrease" aria-label="Decrease quantity">−</button>
+                        <output id="product-quantity-value" class="product-quantity__value" aria-live="polite">1</output>
+                        <button type="button" data-quantity-action="increase" aria-label="Increase quantity">+</button>
+                    </div>
+                </div>
+
+                <button class="button button--dark product-info__add" id="add-to-cart" type="button">Add to Cart <span aria-hidden="true">→</span></button>
+                <p class="product-info__note" id="product-feedback" role="status" aria-live="polite"></p>
 
                 <dl class="product-highlights">
                     <div><dt>Fit</dt><dd>Relaxed</dd></div>

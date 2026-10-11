@@ -95,9 +95,11 @@
     place-items: center;
     overflow: hidden;
     padding: 0.35rem;
+    font: inherit;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
+    cursor: pointer;
     transition: border-color 160ms ease, transform 160ms ease;
 }
 
@@ -232,13 +234,14 @@
     box-shadow: 0 0 0 2px var(--color-ink);
 }
 
-.product-swatch--sand { background: #c9b295; }
-.product-swatch--ink { background: #242424; }
-.product-swatch--olive { background: #7f8467; }
+.product-swatch--black { background: #242424; }
+.product-swatch--white { background: #f7f6f2; }
+.product-swatch--navy { background: #25364e; }
+.product-swatch--green { background: #65765a; }
 
 .product-size-grid {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.55rem;
     margin-top: var(--space-2);
 }
@@ -256,12 +259,65 @@
     border-color: var(--color-ink);
 }
 
+.product-size-grid button[aria-pressed='true'] {
+    color: var(--color-background);
+    border-color: var(--color-ink);
+    background: var(--color-ink);
+}
+
+.product-quantity {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+}
+
+.product-quantity__label {
+    color: var(--color-ink);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.product-quantity__controls {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+}
+
+.product-quantity__controls button,
+.product-quantity__value {
+    display: grid;
+    width: 2.5rem;
+    height: 2.5rem;
+    place-items: center;
+}
+
+.product-quantity__controls button {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font-size: 1.2rem;
+}
+
+.product-quantity__controls button:hover {
+    color: var(--color-accent);
+}
+
+.product-quantity__value {
+    color: var(--color-ink);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
 .product-info__add {
     width: 100%;
     margin-top: var(--space-6);
 }
 
 .product-info__note {
+    min-height: 1.3rem;
     margin: 0.6rem 0 0;
     color: var(--color-muted);
     font-size: 0.78rem;
