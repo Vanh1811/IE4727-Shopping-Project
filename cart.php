@@ -36,11 +36,16 @@ $cartItems = [
 
 $cartSubtotal = 0;
 $cartItemCount = 0;
+$cartDiscountRate = 0.10;
+$cartDeliveryFee = 5.00;
 
 foreach ($cartItems as $item) {
     $cartSubtotal += $item['price'] * $item['quantity'];
     $cartItemCount += $item['quantity'];
 }
+
+$cartDiscount = $cartSubtotal * $cartDiscountRate;
+$cartTotal = $cartSubtotal - $cartDiscount + $cartDeliveryFee;
 
 include __DIR__ . '/includes/header.php';
 ?>
@@ -94,21 +99,22 @@ include __DIR__ . '/includes/header.php';
 
                 <div class="cart-empty" id="cart-empty" hidden>
                     <div class="cart-empty__mark" aria-hidden="true">+</div>
-                    <h2>Your cart is ready for something good.</h2>
-                    <p>Explore the collection and add a few pieces that feel like you.</p>
+                    <h2>YOUR CART IS EMPTY</h2>
+                    <p>You haven't added any products yet.</p>
                     <a class="button button--dark" href="shop.php">Continue shopping <span aria-hidden="true">→</span></a>
                 </div>
             </section>
 
-            <aside class="cart-summary" id="cart-summary" aria-labelledby="cart-summary-title">
+            <aside class="cart-summary" id="cart-summary" data-discount-rate="<?= htmlspecialchars((string) $cartDiscountRate, ENT_QUOTES, 'UTF-8') ?>" data-delivery-fee="<?= htmlspecialchars((string) $cartDeliveryFee, ENT_QUOTES, 'UTF-8') ?>" aria-labelledby="cart-summary-title">
                 <p class="eyebrow">Order overview</p>
-                <h2 id="cart-summary-title">Cart summary</h2>
+                <h2 id="cart-summary-title">ORDER SUMMARY</h2>
                 <div class="cart-summary__row"><span>Subtotal</span><strong id="cart-subtotal">$<?= number_format($cartSubtotal, 2) ?></strong></div>
-                <div class="cart-summary__row"><span>Delivery</span><span>Calculated at checkout</span></div>
-                <div class="cart-summary__total"><span>Total</span><strong id="cart-total">$<?= number_format($cartSubtotal, 2) ?></strong></div>
+                <div class="cart-summary__row"><span>Discount (-<?= number_format($cartDiscountRate * 100, 0) ?>%)</span><strong id="cart-discount">-$<?= number_format($cartDiscount, 2) ?></strong></div>
+                <div class="cart-summary__row"><span>Delivery Fee</span><strong id="cart-delivery">$<?= number_format($cartDeliveryFee, 2) ?></strong></div>
+                <div class="cart-summary__total"><span>Total</span><strong id="cart-total">$<?= number_format($cartTotal, 2) ?></strong></div>
                 <a class="button button--dark cart-summary__checkout" href="checkout.php">Go to checkout <span aria-hidden="true">→</span></a>
                 <a class="cart-summary__continue" href="shop.php">Continue shopping <span aria-hidden="true">↗</span></a>
-                <p class="cart-summary__note">Taxes and delivery options will be confirmed at checkout.</p>
+                <p class="cart-summary__note">Your discount is applied automatically. Delivery is a flat $<?= number_format($cartDeliveryFee, 2) ?> for this demo.</p>
             </aside>
         </div>
     </div>

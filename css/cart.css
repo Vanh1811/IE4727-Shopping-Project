@@ -222,8 +222,10 @@
     top: 1.5rem;
     padding: var(--space-5);
     background: var(--color-ink);
+    border: 1px solid #303030;
     border-radius: var(--radius-lg);
     color: var(--color-background);
+    box-shadow: var(--shadow-soft);
 }
 
 .cart-summary .eyebrow {
@@ -234,6 +236,7 @@
     margin-bottom: var(--space-5);
     color: var(--color-background);
     font-size: 1.7rem;
+    letter-spacing: -0.05em;
 }
 
 .cart-summary__row,
@@ -244,6 +247,7 @@
     gap: var(--space-3);
     color: #bcbcb8;
     font-size: 0.82rem;
+    line-height: 1.4;
 }
 
 .cart-summary__row + .cart-summary__row {
@@ -267,6 +271,18 @@
 
 .cart-summary__total strong {
     font-size: 1.35rem;
+}
+
+.cart-summary .button--dark {
+    border-color: var(--color-background);
+    color: var(--color-ink);
+    background: var(--color-background);
+}
+
+.cart-summary .button--dark:hover:not(:disabled) {
+    border-color: var(--color-accent);
+    color: var(--color-background);
+    background: var(--color-accent);
 }
 
 .cart-summary__checkout {
@@ -302,6 +318,10 @@
     text-align: center;
 }
 
+.cart-empty[hidden] {
+    display: none;
+}
+
 .cart-empty__mark {
     display: grid;
     width: 3.5rem;
@@ -315,7 +335,7 @@
 }
 
 .cart-empty p {
-    margin: var(--space-2) auto var(--space-4);
+    margin: var(--space-3) auto var(--space-4);
     color: var(--color-muted);
 }
 

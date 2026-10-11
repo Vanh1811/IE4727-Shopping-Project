@@ -112,6 +112,8 @@
 
     const cartItems = cartPage.querySelectorAll('[data-cart-item]');
     const cartSubtotal = cartPage.querySelector('#cart-subtotal');
+    const cartDiscount = cartPage.querySelector('#cart-discount');
+    const cartDelivery = cartPage.querySelector('#cart-delivery');
     const cartTotal = cartPage.querySelector('#cart-total');
     const cartItemsCount = cartPage.querySelector('#cart-items-count');
     const cartItemsHeader = cartPage.querySelector('#cart-items-header');
@@ -119,6 +121,8 @@
     const cartEmpty = cartPage.querySelector('#cart-empty');
 
     const formatCurrency = (value) => '$' + value.toFixed(2);
+    const discountRate = Number(cartSummary?.dataset.discountRate) || 0;
+    const deliveryFee = Number(cartSummary?.dataset.deliveryFee) || 0;
 
     const updateCart = () => {
         let subtotal = 0;
@@ -150,12 +154,24 @@
             visibleItemCount += 1;
         });
 
+        const discount = subtotal * discountRate;
+        const delivery = visibleItemCount > 0 ? deliveryFee : 0;
+        const total = subtotal - discount + delivery;
+
         if (cartSubtotal) {
             cartSubtotal.textContent = formatCurrency(subtotal);
         }
 
+        if (cartDiscount) {
+            cartDiscount.textContent = '-' + formatCurrency(discount);
+        }
+
+        if (cartDelivery) {
+            cartDelivery.textContent = formatCurrency(delivery);
+        }
+
         if (cartTotal) {
-            cartTotal.textContent = formatCurrency(subtotal);
+            cartTotal.textContent = formatCurrency(total);
         }
 
         if (cartItemsCount) {
