@@ -110,6 +110,7 @@ include __DIR__ . '/includes/header.php';
                         PLACE ORDER <span aria-hidden="true">&rarr;</span>
                     </button>
                     <p class="checkout-form__feedback" id="checkout-demo-message" role="status" aria-live="polite" hidden></p>
+                    <a class="checkout-demo-link" href="confirmation.php">VIEW DEMO CONFIRMATION <span aria-hidden="true">&rarr;</span></a>
                 </form>
             </section>
 

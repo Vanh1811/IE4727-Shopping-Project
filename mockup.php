@@ -101,11 +101,11 @@ include __DIR__ . '/includes/header.php';
                         <h2 id="review-title">REVIEW YOUR DESIGN</h2>
                     </div>
 
-                    <form class="review-form" action="mockup.php" method="post">
-                        <fieldset>
+                    <form class="review-form" id="mockup-review-form" action="mockup.php" method="post" novalidate>
+                        <fieldset aria-describedby="decision-error">
                             <legend class="sr-only">Choose a review decision</legend>
                             <label class="review-option">
-                                <input type="radio" name="review_decision" value="approve" checked>
+                                <input type="radio" name="review_decision" value="approve" required>
                                 <span class="review-option__content">
                                     <span>
                                         <strong>Approve Design</strong>
@@ -125,7 +125,14 @@ include __DIR__ . '/includes/header.php';
                                 </span>
                             </label>
                         </fieldset>
-                        <button class="button button--dark button--wide review-submit" type="button">SUBMIT REVIEW <span aria-hidden="true">&rarr;</span></button>
+                        <p class="review-form__error" id="decision-error" role="alert" hidden>Please choose Approve Design or Request Changes.</p>
+                        <div class="change-request-field" id="change-request-field" hidden>
+                            <label for="change-request">Describe Your Requested Changes</label>
+                            <p class="change-request-field__help" id="change-request-help">Tell us what to adjust, such as logo placement, print size, text, colour, or another design detail.</p>
+                            <textarea id="change-request" name="change_request" rows="4" maxlength="500" aria-describedby="change-request-help change-request-error" required disabled></textarea>
+                            <p class="review-form__error" id="change-request-error" role="alert" hidden>Please describe the changes you would like to request.</p>
+                        </div>
+                        <button class="button button--dark button--wide review-submit" type="submit">SUBMIT REVIEW <span aria-hidden="true">&rarr;</span></button>
                         <p class="review-form__note">Demo interface only — no review decision will be saved or submitted.</p>
                     </form>
                 </section>
@@ -136,6 +143,7 @@ include __DIR__ . '/includes/header.php';
             <div>
                 <p class="eyebrow">Take a closer look</p>
                 <h2 id="instructions-title">BEFORE YOU APPROVE</h2>
+                <p class="review-instructions__note">This frontend demonstration does not save a decision. The real flow will process your review after backend integration.</p>
             </div>
             <ul>
                 <li>Check the product colour and size.</li>
@@ -146,5 +154,7 @@ include __DIR__ . '/includes/header.php';
         </section>
     </div>
 </div>
+
+<script src="js/mockup.js"></script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

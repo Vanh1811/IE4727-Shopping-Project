@@ -361,6 +361,72 @@
     outline-offset: 3px;
 }
 
+.review-form__error {
+    grid-column: 1 / -1;
+    margin: 0.2rem 0 0;
+    color: #b44838;
+    font-size: 0.76rem;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.change-request-field {
+    display: grid;
+    gap: 0.45rem;
+    margin-top: var(--space-3);
+    padding: var(--space-3);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+}
+
+.change-request-field[hidden],
+.review-form__error[hidden],
+.review-feedback[hidden] {
+    display: none;
+}
+
+.change-request-field label {
+    color: var(--color-ink);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.change-request-field__help {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 0.74rem;
+    line-height: 1.45;
+}
+
+.change-request-field textarea {
+    width: 100%;
+    min-height: 7rem;
+    padding: 0.75rem 0.85rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-ink);
+    background: var(--color-background);
+    font: inherit;
+    font-size: 0.84rem;
+    resize: vertical;
+}
+
+.change-request-field textarea:focus {
+    border-color: var(--color-ink);
+    outline: 0;
+    box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.change-request-field textarea[aria-invalid='true'] {
+    border-color: #b44838;
+    background: #fff8f6;
+}
+
+.change-request-field .review-form__error {
+    margin-top: 0;
+}
+
 .review-submit {
     margin-top: var(--space-4);
 }
@@ -371,6 +437,20 @@
     font-size: 0.72rem;
     line-height: 1.45;
     text-align: center;
+}
+
+.review-feedback {
+    margin: var(--space-3) 0 0;
+    padding: 0.8rem 1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.review-feedback.is-success {
+    color: var(--color-success);
+    background: #dcebe2;
 }
 
 .review-instructions {
@@ -391,6 +471,14 @@
 
 .review-instructions h2 {
     color: var(--color-background);
+}
+
+.review-instructions__note {
+    max-width: 24rem;
+    margin: var(--space-4) 0 0;
+    color: #bcbcb8;
+    font-size: 0.78rem;
+    line-height: 1.5;
 }
 
 .review-instructions ul {

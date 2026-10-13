@@ -170,6 +170,24 @@
     font-weight: 700;
 }
 
+.checkout-demo-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: var(--space-3);
+    color: var(--color-muted);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+}
+
+.checkout-demo-link:hover {
+    color: var(--color-accent);
+}
+
 .order-summary {
     position: sticky;
     top: 1.5rem;
