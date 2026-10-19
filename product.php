@@ -51,7 +51,8 @@ if ($productId !== false && $productId !== null && $productId > 0 && $db !== nul
             if ($productStatement->fetch()) {
                 $price = (float) $productPrice;
                 $originalPrice = $productOriginalPrice !== null ? (float) $productOriginalPrice : null;
-                $discountPercent = $originalPrice !== null && $originalPrice > $price
+                $hasDiscount = $originalPrice !== null && $originalPrice > $price;
+                $discountPercent = $hasDiscount
                     ? (int) round((1 - ($price / $originalPrice)) * 100)
                     : 0;
                 $productImages = [];
@@ -76,7 +77,7 @@ if ($productId !== false && $productId !== null && $productId > 0 && $db !== nul
                     'name' => $productName,
                     'category' => $productCategory,
                     'currentPrice' => '$' . number_format($price, 2),
-                    'originalPrice' => $originalPrice !== null ? '$' . number_format($originalPrice, 2) : '',
+                    'originalPrice' => $hasDiscount ? '$' . number_format($originalPrice, 2) : '',
                     'discount' => $discountPercent > 0 ? '-' . $discountPercent . '%' : '',
                     'rating' => number_format((float) $productRating, 1),
                     'reviewCount' => (string) $productReviewCount . ' reviews',
