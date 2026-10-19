@@ -318,3 +318,32 @@
     gap: var(--space-3);
     margin-top: var(--space-5);
 }
+
+.confirmation-not-found {
+    max-width: 42rem;
+    margin: clamp(4rem, 12vw, 10rem) auto;
+    padding: var(--space-8) 0;
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.confirmation-not-found h1 {
+    max-width: 12ch;
+    margin: 0.5rem 0 0;
+    color: var(--color-ink);
+    font-size: clamp(3rem, 8vw, 6.5rem);
+    letter-spacing: -0.07em;
+    line-height: 0.9;
+}
+
+.confirmation-not-found > p:not(.eyebrow) {
+    max-width: 30rem;
+    margin: var(--space-4) 0 0;
+    color: var(--color-muted);
+    line-height: 1.7;
+}
+
+.confirmation-not-found .button {
+    display: inline-flex;
+    margin-top: var(--space-5);
+}
