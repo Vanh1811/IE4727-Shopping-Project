@@ -43,6 +43,17 @@ if ($minPrice !== null && $maxPrice !== null && $minPrice > $maxPrice) {
     $validPriceRange = false;
 }
 
+$allowedSorts = [
+    'featured' => 'p.is_top_selling DESC, p.is_new DESC, p.id ASC',
+    'newest' => 'p.created_at DESC, p.id DESC',
+    'price_asc' => 'p.price ASC, p.id ASC',
+    'price_desc' => 'p.price DESC, p.id DESC',
+];
+$sortKey = isset($_GET['sort']) && is_scalar($_GET['sort'])
+    ? (string) $_GET['sort']
+    : 'featured';
+$sortKey = array_key_exists($sortKey, $allowedSorts) ? $sortKey : 'featured';
+
 $shopProducts = [];
 
 if ($db !== null && $validPriceRange) {
@@ -91,7 +102,7 @@ if ($db !== null && $validPriceRange) {
         $filterParams[] = $maxPrice;
     }
 
-    $catalogueQuery .= ' ORDER BY p.id ASC';
+    $catalogueQuery .= ' ORDER BY ' . $allowedSorts[$sortKey];
     $catalogueStatement = $db->prepare($catalogueQuery);
 
     if ($catalogueStatement !== false) {
@@ -180,6 +191,7 @@ include __DIR__ . '/includes/header.php';
 
                 <form class="shop-filter-form" action="shop.php" method="get">
                     <input type="hidden" name="search" value="<?= htmlspecialchars($searchTerm, ENT_QUOTES, 'UTF-8') ?>">
+                    <input type="hidden" name="sort" value="<?= htmlspecialchars($sortKey, ENT_QUOTES, 'UTF-8') ?>">
                     <section class="shop-filter-section" aria-labelledby="category-heading">
                         <h3 id="category-heading">Categories</h3>
                         <div class="shop-filter-options">
@@ -246,6 +258,7 @@ include __DIR__ . '/includes/header.php';
                     <input type="hidden" name="category" value="<?= htmlspecialchars($categorySlug, ENT_QUOTES, 'UTF-8') ?>">
                     <input type="hidden" name="min_price" value="<?= htmlspecialchars($minPriceInput, ENT_QUOTES, 'UTF-8') ?>">
                     <input type="hidden" name="max_price" value="<?= htmlspecialchars($maxPriceInput, ENT_QUOTES, 'UTF-8') ?>">
+                    <input type="hidden" name="sort" value="<?= htmlspecialchars($sortKey, ENT_QUOTES, 'UTF-8') ?>">
                     <div class="shop-search__field">
                         <label class="shop-form-label" for="catalogue-search">Search products</label>
                         <input id="catalogue-search" name="search" type="search" placeholder="Search products..." autocomplete="off" value="<?= htmlspecialchars($searchTerm, ENT_QUOTES, 'UTF-8') ?>">
@@ -255,15 +268,20 @@ include __DIR__ . '/includes/header.php';
 
                 <div class="shop-toolbar">
                     <p id="catalogue-heading" class="shop-result-count"><?= htmlspecialchars($shopResultText, ENT_QUOTES, 'UTF-8') ?></p>
-                    <div class="shop-sort">
+                    <form class="shop-sort" action="shop.php" method="get">
+                        <input type="hidden" name="search" value="<?= htmlspecialchars($searchTerm, ENT_QUOTES, 'UTF-8') ?>">
+                        <input type="hidden" name="category" value="<?= htmlspecialchars($categorySlug, ENT_QUOTES, 'UTF-8') ?>">
+                        <input type="hidden" name="min_price" value="<?= htmlspecialchars($minPriceInput, ENT_QUOTES, 'UTF-8') ?>">
+                        <input type="hidden" name="max_price" value="<?= htmlspecialchars($maxPriceInput, ENT_QUOTES, 'UTF-8') ?>">
                         <label for="sort-products">Sort by</label>
                         <select id="sort-products" name="sort">
-                            <option value="featured">Featured</option>
-                            <option value="newest">Newest</option>
-                            <option value="price_asc">Price: Low to High</option>
-                            <option value="price_desc">Price: High to Low</option>
+                            <option value="featured"<?= $sortKey === 'featured' ? ' selected' : '' ?>>Featured</option>
+                            <option value="newest"<?= $sortKey === 'newest' ? ' selected' : '' ?>>Newest</option>
+                            <option value="price_asc"<?= $sortKey === 'price_asc' ? ' selected' : '' ?>>Price: Low to High</option>
+                            <option value="price_desc"<?= $sortKey === 'price_desc' ? ' selected' : '' ?>>Price: High to Low</option>
                         </select>
-                    </div>
+                        <button class="button button--outline button--small shop-sort-submit" type="submit">Apply</button>
+                    </form>
                 </div>
 
                 <section class="shop-empty-state<?= $shopProductCount > 0 ? ' is-hidden' : '' ?>" aria-labelledby="empty-state-heading">
