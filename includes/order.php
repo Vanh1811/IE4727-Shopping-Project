@@ -29,6 +29,7 @@ function f2bOrderValidateCheckout($input)
         'special_instructions' => f2bOrderReadInput($input, 'special_instructions'),
     );
     $errors = array();
+    $phoneDigits = preg_replace('/[^0-9]/', '', $values['phone']);
 
     if ($values['full_name'] === '' || strlen($values['full_name']) < 2 || strlen($values['full_name']) > 160 || f2bOrderHasControlCharacters($values['full_name'])) {
         $errors['full_name'] = 'Enter your full name.';
@@ -43,7 +44,7 @@ function f2bOrderValidateCheckout($input)
         strlen($values['phone']) < 7 ||
         strlen($values['phone']) > 30 ||
         preg_match('/^[0-9+(). -]+$/', $values['phone']) !== 1 ||
-        preg_match('/[0-9]{7,}/', $values['phone']) !== 1
+        strlen($phoneDigits) < 7
     ) {
         $errors['phone'] = 'Enter a valid phone number.';
     }
