@@ -34,6 +34,11 @@ function f2bCustomerMockupStatusClass($status)
         'READY_FOR_REVIEW' => 'ready',
         'CHANGES_REQUESTED' => 'changes',
         'APPROVED' => 'approved',
+        'ORDER_PLACED' => 'pending',
+        'DESIGN_REVIEW' => 'review',
+        'CONFIRMED' => 'approved',
+        'PROCESSING' => 'approved',
+        'COMPLETED' => 'approved',
     );
 
     return isset($classes[$status]) ? $classes[$status] : 'pending';
