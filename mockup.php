@@ -153,6 +153,33 @@ if ($mockupId !== null && is_object($db) && method_exists($db, 'prepare')) {
     $lookupFailed = true;
 }
 
+$reviewHistory = array();
+if ($mockup !== null && is_object($db) && method_exists($db, 'prepare')) {
+    $historyStatement = $db->prepare(
+        'SELECT decision, change_request, revision, created_at '
+        . 'FROM mockup_reviews WHERE mockup_id = ? ORDER BY id DESC'
+    );
+    if ($historyStatement !== false) {
+        $historyStatement->bind_param('i', $mockup['id']);
+        if ($historyStatement->execute()) {
+            $historyDecision = null;
+            $historyChangeRequest = null;
+            $historyRevision = null;
+            $historyCreatedAt = null;
+            $historyStatement->bind_result($historyDecision, $historyChangeRequest, $historyRevision, $historyCreatedAt);
+            while ($historyStatement->fetch()) {
+                $reviewHistory[] = array(
+                    'decision' => (string) $historyDecision,
+                    'change_request' => $historyChangeRequest === null ? '' : (string) $historyChangeRequest,
+                    'revision' => (int) $historyRevision,
+                    'created_at' => (string) $historyCreatedAt,
+                );
+            }
+        }
+        $historyStatement->close();
+    }
+}
+
 $reviewCsrfToken = $mockup !== null && $mockup['status'] === 'READY_FOR_REVIEW'
     ? f2bCsrfToken('mockup-review')
     : null;
@@ -263,6 +290,29 @@ include __DIR__ . '/includes/header.php';
                             <p class="eyebrow">Saved customer feedback</p>
                             <h2 id="saved-feedback-title">LATEST REQUEST</h2>
                             <p><?= nl2br(htmlspecialchars($mockup['latest_change_request'], ENT_QUOTES, 'UTF-8')) ?></p>
+                        </section>
+                    <?php endif; ?>
+
+                    <?php if ($reviewHistory): ?>
+                        <section class="review-history" aria-labelledby="review-history-title">
+                            <div class="review-history__heading">
+                                <p class="eyebrow">Read-only record</p>
+                                <h2 id="review-history-title">REVIEW HISTORY</h2>
+                            </div>
+                            <ol class="review-history__list">
+                                <?php foreach ($reviewHistory as $historyEntry): ?>
+                                    <li>
+                                        <div class="review-history__entry-heading">
+                                            <strong><?= $historyEntry['decision'] === 'approve' ? 'Design approved' : 'Changes requested' ?></strong>
+                                            <span>Revision <?= (int) $historyEntry['revision'] ?></span>
+                                        </div>
+                                        <time datetime="<?= htmlspecialchars(date('c', strtotime($historyEntry['created_at'])), ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars(date('j F Y, g:i a', strtotime($historyEntry['created_at'])), ENT_QUOTES, 'UTF-8') ?></time>
+                                        <?php if ($historyEntry['change_request'] !== ''): ?>
+                                            <p><?= nl2br(htmlspecialchars($historyEntry['change_request'], ENT_QUOTES, 'UTF-8')) ?></p>
+                                        <?php endif; ?>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ol>
                         </section>
                     <?php endif; ?>
 
