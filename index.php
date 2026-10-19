@@ -1,6 +1,81 @@
 <?php
 $pageTitle = 'Home';
 $pageDescription = 'F2B SHOP — modern fashion essentials designed for your everyday style.';
+
+include __DIR__ . '/includes/db.php';
+
+$homepageToneByColour = [
+    'Black' => 'ink',
+    'White' => 'cream',
+    'Navy' => 'blue',
+    'Green' => 'olive',
+    'Olive' => 'olive',
+    'Blue' => 'blue',
+    'Cream' => 'cream',
+    'Coral' => 'coral',
+    'Mist' => 'mist',
+    'Sand' => 'sand',
+    'Slate' => 'slate',
+    'Ink' => 'ink',
+];
+
+$mapHomepageProduct = static function (array $row) use ($homepageToneByColour): array {
+    $price = (float) $row['price'];
+    $originalPrice = $row['original_price'] !== null ? (float) $row['original_price'] : null;
+    $discountPercent = $originalPrice !== null && $originalPrice > $price
+        ? (int) round((1 - ($price / $originalPrice)) * 100)
+        : 0;
+    $badge = (int) $row['is_new'] === 1
+        ? 'New'
+        : ($discountPercent > 0
+            ? '-' . $discountPercent . '%'
+            : ((int) $row['is_top_selling'] === 1 ? 'Best seller' : null));
+
+    return [
+        'id' => (int) $row['id'],
+        'name' => $row['name'],
+        'price' => '$' . number_format($price, 2),
+        'oldPrice' => $originalPrice !== null ? '$' . number_format($originalPrice, 2) : null,
+        'meta' => $row['category_name'] . ' / ' . $row['colour'],
+        'tone' => $homepageToneByColour[$row['colour']] ?? 'mist',
+        'image' => $row['image'],
+        'rating' => number_format((float) $row['rating'], 1),
+        'badge' => $badge,
+    ];
+};
+
+$loadHomepageProducts = static function ($connection, string $flagColumn) use ($mapHomepageProduct): array {
+    $allowedFlagColumns = ['is_new', 'is_top_selling'];
+
+    if (!in_array($flagColumn, $allowedFlagColumns, true)) {
+        return [];
+    }
+
+    $query = 'SELECT p.id, p.name, p.price, p.original_price, p.rating, p.image, p.colour, '
+        . 'p.is_new, p.is_top_selling, c.name AS category_name '
+        . 'FROM products AS p '
+        . 'INNER JOIN categories AS c ON c.id = p.category_id '
+        . 'WHERE p.' . $flagColumn . ' = 1 '
+        . 'ORDER BY p.created_at DESC, p.id DESC LIMIT 4';
+    $result = $connection->query($query);
+    $products = [];
+
+    if ($result === false) {
+        error_log('F2B SHOP homepage catalogue query failed.');
+        return $products;
+    }
+
+    while ($row = $result->fetch_assoc()) {
+        $products[] = $mapHomepageProduct($row);
+    }
+
+    $result->free();
+    return $products;
+};
+
+$newArrivals = $db !== null ? $loadHomepageProducts($db, 'is_new') : [];
+$topSelling = $db !== null ? $loadHomepageProducts($db, 'is_top_selling') : [];
+
 include __DIR__ . '/includes/header.php';
 ?>
 
@@ -50,23 +125,15 @@ include __DIR__ . '/includes/header.php';
             <a class="button button--outline button--small" href="shop.php">View all <span aria-hidden="true">→</span></a>
         </div>
         <div class="product-grid product-grid--four">
-            <?php
-            $newArrivals = [
-                ['name' => 'Studio Overshirt', 'price' => '$68', 'meta' => 'Layering essential', 'tone' => 'sand', 'image' => 'images/products/studio-overshirt.svg', 'rating' => '4.8', 'badge' => 'New'],
-                ['name' => 'Everyday Pleat Trouser', 'price' => '$74', 'oldPrice' => '$88', 'meta' => 'Relaxed tailoring', 'tone' => 'mist', 'image' => 'images/products/everyday-pleat-trouser.svg', 'rating' => '4.7', 'badge' => '-16%'],
-                ['name' => 'Contour Rib Tee', 'price' => '$36', 'meta' => 'Soft cotton jersey', 'tone' => 'coral', 'image' => 'images/products/contour-rib-tee.svg', 'rating' => '4.9', 'badge' => 'New'],
-                ['name' => 'Transit Crossbody', 'price' => '$52', 'oldPrice' => '$64', 'meta' => 'Daily carry', 'tone' => 'slate', 'image' => 'images/products/transit-crossbody.svg', 'rating' => '4.8', 'badge' => '-19%'],
-            ];
-            foreach ($newArrivals as $product):
-            ?>
+            <?php foreach ($newArrivals as $product): ?>
                 <article class="product-card">
-                    <a class="product-card__image product-card__image--<?= htmlspecialchars($product['tone'], ENT_QUOTES, 'UTF-8') ?>" href="product.php" aria-label="View <?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>">
+                    <a class="product-card__image product-card__image--<?= htmlspecialchars($product['tone'], ENT_QUOTES, 'UTF-8') ?>" href="product.php?id=<?= $product['id'] ?>" aria-label="View <?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>">
                         <?php if (!empty($product['badge'])): ?><span class="product-badge"><?= htmlspecialchars($product['badge'], ENT_QUOTES, 'UTF-8') ?></span><?php endif; ?>
                         <img class="product-card__image-art" src="<?= htmlspecialchars($product['image'], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?> product image">
                     </a>
                     <div class="product-card__details">
                         <div>
-                            <h3><a href="product.php"><?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?></a></h3>
+                            <h3><a href="product.php?id=<?= $product['id'] ?>"><?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?></a></h3>
                             <p><?= htmlspecialchars($product['meta'], ENT_QUOTES, 'UTF-8') ?></p>
                         </div>
                         <div class="price-group">
@@ -91,23 +158,15 @@ include __DIR__ . '/includes/header.php';
             <a class="button button--outline button--small" href="shop.php">View all <span aria-hidden="true">→</span></a>
         </div>
         <div class="product-grid product-grid--four">
-            <?php
-            $topSelling = [
-                ['name' => 'Form Tee', 'price' => '$32', 'meta' => 'Heavyweight cotton', 'tone' => 'ink', 'image' => 'images/products/form-tee.svg', 'rating' => '4.9', 'badge' => 'Best seller'],
-                ['name' => 'Open Line Shirt', 'price' => '$58', 'meta' => 'Easy fit shirt', 'tone' => 'cream', 'image' => 'images/products/open-line-shirt.svg', 'rating' => '4.8'],
-                ['name' => 'Arc Denim', 'price' => '$82', 'oldPrice' => '$96', 'meta' => 'Straight-leg denim', 'tone' => 'blue', 'image' => 'images/products/arc-denim.svg', 'rating' => '4.9', 'badge' => '-15%'],
-                ['name' => 'Soft Frame Tote', 'price' => '$46', 'meta' => 'Everyday carry', 'tone' => 'olive', 'image' => 'images/products/soft-frame-tote.svg', 'rating' => '4.7'],
-            ];
-            foreach ($topSelling as $product):
-            ?>
+            <?php foreach ($topSelling as $product): ?>
                 <article class="product-card">
-                    <a class="product-card__image product-card__image--<?= htmlspecialchars($product['tone'], ENT_QUOTES, 'UTF-8') ?>" href="product.php" aria-label="View <?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>">
+                    <a class="product-card__image product-card__image--<?= htmlspecialchars($product['tone'], ENT_QUOTES, 'UTF-8') ?>" href="product.php?id=<?= $product['id'] ?>" aria-label="View <?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>">
                         <?php if (!empty($product['badge'])): ?><span class="product-badge"><?= htmlspecialchars($product['badge'], ENT_QUOTES, 'UTF-8') ?></span><?php endif; ?>
                         <img class="product-card__image-art" src="<?= htmlspecialchars($product['image'], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?> product image">
                     </a>
                     <div class="product-card__details">
                         <div>
-                            <h3><a href="product.php"><?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?></a></h3>
+                            <h3><a href="product.php?id=<?= $product['id'] ?>"><?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?></a></h3>
                             <p><?= htmlspecialchars($product['meta'], ENT_QUOTES, 'UTF-8') ?></p>
                         </div>
                         <div class="price-group">
