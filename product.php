@@ -54,6 +54,23 @@ if ($productId !== false && $productId !== null && $productId > 0 && $db !== nul
                 $discountPercent = $originalPrice !== null && $originalPrice > $price
                     ? (int) round((1 - ($price / $originalPrice)) * 100)
                     : 0;
+                $productImages = [];
+
+                foreach (
+                    [
+                        [$productImage, $productName . ' front view'],
+                        [$productImageTwo, $productName . ' detail view'],
+                        [$productImageThree, $productName . ' back view'],
+                        [$productImageFour, $productName . ' styled view'],
+                    ] as [$imagePath, $imageAlt]
+                ) {
+                    if (is_string($imagePath) && trim($imagePath) !== '') {
+                        $productImages[] = [
+                            'src' => trim($imagePath),
+                            'alt' => $imageAlt,
+                        ];
+                    }
+                }
 
                 $product = [
                     'name' => $productName,
@@ -65,12 +82,7 @@ if ($productId !== false && $productId !== null && $productId > 0 && $db !== nul
                     'reviewCount' => (string) $productReviewCount . ' reviews',
                     'colour' => $productColour,
                     'description' => $productDescription,
-                    'images' => [
-                        [
-                            'src' => $productImage,
-                            'alt' => $productName . ' product image',
-                        ],
-                    ],
+                    'images' => $productImages,
                 ];
 
                 $pageTitle = $product['name'];
@@ -89,6 +101,32 @@ if ($productId !== false && $productId !== null && $productId > 0 && $db !== nul
 if ($product === null) {
     $pageTitle = 'Product Not Found';
     $pageDescription = 'The requested product could not be found.';
+}
+
+$colourPalette = [
+    'Black' => '#242424',
+    'White' => '#f7f6f2',
+    'Navy' => '#25364e',
+    'Green' => '#65765a',
+    'Coral' => '#d88372',
+    'Cream' => '#e7ddc9',
+    'Blue' => '#6688a8',
+    'Olive' => '#7b8060',
+    'Ink' => '#2e3642',
+    'Mist' => '#bec4c3',
+    'Sand' => '#c5a87d',
+    'Slate' => '#64717d',
+];
+
+$colourOptions = [];
+if ($product !== null) {
+    $colourOptions[] = $product['colour'];
+
+    foreach (['Black', 'White', 'Navy', 'Green'] as $colourOption) {
+        if (!in_array($colourOption, $colourOptions, true)) {
+            $colourOptions[] = $colourOption;
+        }
+    }
 }
 
 include __DIR__ . '/includes/header.php';
@@ -115,7 +153,9 @@ include __DIR__ . '/includes/header.php';
             <section class="product-layout" aria-labelledby="product-title">
                 <div class="product-gallery">
                     <div class="product-gallery__main">
-                        <span class="product-gallery__badge"><?= htmlspecialchars($product['discount'], ENT_QUOTES, 'UTF-8') ?></span>
+                        <?php if ($product['discount'] !== ''): ?>
+                            <span class="product-gallery__badge"><?= htmlspecialchars($product['discount'], ENT_QUOTES, 'UTF-8') ?></span>
+                        <?php endif; ?>
                         <img id="product-main-image" src="<?= htmlspecialchars($product['images'][0]['src'], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($product['images'][0]['alt'], ENT_QUOTES, 'UTF-8') ?>">
                     </div>
                     <div class="product-gallery__thumbs" aria-label="Product image thumbnails">
@@ -136,18 +176,21 @@ include __DIR__ . '/includes/header.php';
                     </div>
                     <div class="product-info__price">
                         <strong><?= htmlspecialchars($product['currentPrice'], ENT_QUOTES, 'UTF-8') ?></strong>
-                        <del><?= htmlspecialchars($product['originalPrice'], ENT_QUOTES, 'UTF-8') ?></del>
-                        <span><?= htmlspecialchars($product['discount'], ENT_QUOTES, 'UTF-8') ?></span>
+                        <?php if ($product['originalPrice'] !== ''): ?>
+                            <del><?= htmlspecialchars($product['originalPrice'], ENT_QUOTES, 'UTF-8') ?></del>
+                        <?php endif; ?>
+                        <?php if ($product['discount'] !== ''): ?>
+                            <span><?= htmlspecialchars($product['discount'], ENT_QUOTES, 'UTF-8') ?></span>
+                        <?php endif; ?>
                     </div>
                     <p class="product-info__description"><?= htmlspecialchars($product['description'], ENT_QUOTES, 'UTF-8') ?></p>
 
                     <fieldset class="product-option">
                         <legend>Colour: <strong id="selected-colour"><?= htmlspecialchars($product['colour'], ENT_QUOTES, 'UTF-8') ?></strong></legend>
                         <div class="product-swatches" aria-label="Colour options">
-                            <button class="product-swatch product-swatch--black" type="button" data-colour="Black" aria-label="Black" aria-pressed="<?= $product['colour'] === 'Black' ? 'true' : 'false' ?>"></button>
-                            <button class="product-swatch product-swatch--white" type="button" data-colour="White" aria-label="White" aria-pressed="<?= $product['colour'] === 'White' ? 'true' : 'false' ?>"></button>
-                            <button class="product-swatch product-swatch--navy" type="button" data-colour="Navy" aria-label="Navy" aria-pressed="<?= $product['colour'] === 'Navy' ? 'true' : 'false' ?>"></button>
-                            <button class="product-swatch product-swatch--green" type="button" data-colour="Green" aria-label="Green" aria-pressed="<?= $product['colour'] === 'Green' ? 'true' : 'false' ?>"></button>
+                            <?php foreach ($colourOptions as $colourOption): ?>
+                                <button class="product-swatch" type="button" data-colour="<?= htmlspecialchars($colourOption, ENT_QUOTES, 'UTF-8') ?>" aria-label="<?= htmlspecialchars($colourOption, ENT_QUOTES, 'UTF-8') ?>" aria-pressed="<?= $product['colour'] === $colourOption ? 'true' : 'false' ?>" style="background-color: <?= htmlspecialchars($colourPalette[$colourOption] ?? '#b8a78e', ENT_QUOTES, 'UTF-8') ?>"></button>
+                            <?php endforeach; ?>
                         </div>
                     </fieldset>
 
