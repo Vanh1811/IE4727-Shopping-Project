@@ -310,6 +310,27 @@
     margin-top: var(--space-5);
 }
 
+.cart-summary__clear {
+    margin-top: var(--space-3);
+    text-align: center;
+}
+
+.cart-summary__clear button {
+    padding: 0;
+    border: 0;
+    color: #bcbcb8;
+    background: transparent;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.78rem;
+    text-decoration: underline;
+}
+
+.cart-summary__clear button:hover,
+.cart-summary__clear button:focus-visible {
+    color: var(--color-background);
+}
+
 .cart-summary__continue {
     display: block;
     margin-top: var(--space-3);

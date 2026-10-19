@@ -92,6 +92,10 @@ include __DIR__ . '/includes/header.php';
                     <div class="cart-summary__row"><span>Delivery Fee</span><strong id="cart-delivery">$<?= number_format($cartTotals['delivery'], 2) ?></strong></div>
                     <div class="cart-summary__total"><span>Total</span><strong id="cart-total">$<?= number_format($cartTotals['total'], 2) ?></strong></div>
                     <a class="button button--dark cart-summary__checkout" href="checkout.php">Go to checkout <span aria-hidden="true">→</span></a>
+                    <form class="cart-summary__clear" action="cart-action.php" method="post">
+                        <input type="hidden" name="action" value="clear">
+                        <button type="submit">Clear cart</button>
+                    </form>
                     <a class="cart-summary__continue" href="shop.php">Continue shopping <span aria-hidden="true">↗</span></a>
                     <p class="cart-summary__note">Your discount is applied automatically. Delivery is a flat $<?= number_format($cartTotals['delivery'], 2) ?> for this demo.</p>
                 </aside>
