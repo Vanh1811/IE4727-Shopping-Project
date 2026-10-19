@@ -5,9 +5,47 @@ $pageStylesheet = 'css/shop.css';
 
 include __DIR__ . '/includes/db.php';
 
+$searchTerm = isset($_GET['search']) && is_scalar($_GET['search'])
+    ? trim((string) $_GET['search'])
+    : '';
+$categorySlug = isset($_GET['category']) && is_scalar($_GET['category'])
+    ? trim((string) $_GET['category'])
+    : '';
+$minPriceInput = isset($_GET['min_price']) && is_scalar($_GET['min_price'])
+    ? trim((string) $_GET['min_price'])
+    : '';
+$maxPriceInput = isset($_GET['max_price']) && is_scalar($_GET['max_price'])
+    ? trim((string) $_GET['max_price'])
+    : '';
+
+$allowedCategorySlugs = ['t-shirts', 'shirts', 'hoodies', 'jackets', 'pants', 'accessories'];
+$categorySlug = in_array($categorySlug, $allowedCategorySlugs, true) ? $categorySlug : '';
+
+$minPrice = is_numeric($minPriceInput) && (float) $minPriceInput >= 0
+    ? (float) $minPriceInput
+    : null;
+$maxPrice = is_numeric($maxPriceInput) && (float) $maxPriceInput >= 0
+    ? (float) $maxPriceInput
+    : null;
+$filterNotice = null;
+$validPriceRange = true;
+
+if ($minPriceInput !== '' && $minPrice === null) {
+    $filterNotice = 'Enter a valid minimum price to use that filter.';
+}
+
+if ($maxPriceInput !== '' && $maxPrice === null) {
+    $filterNotice = 'Enter a valid maximum price to use that filter.';
+}
+
+if ($minPrice !== null && $maxPrice !== null && $minPrice > $maxPrice) {
+    $filterNotice = 'Minimum price cannot be greater than maximum price.';
+    $validPriceRange = false;
+}
+
 $shopProducts = [];
 
-if ($db !== null) {
+if ($db !== null && $validPriceRange) {
     $catalogueQuery = <<<'SQL'
         SELECT
             p.id,
@@ -23,37 +61,92 @@ if ($db !== null) {
             c.name AS category_name
         FROM products AS p
         INNER JOIN categories AS c ON c.id = p.category_id
-        ORDER BY p.id ASC
+        WHERE 1 = 1
     SQL;
 
-    $catalogueResult = $db->query($catalogueQuery);
+    $filterTypes = '';
+    $filterParams = [];
 
-    if ($catalogueResult !== false) {
-        while ($row = $catalogueResult->fetch_assoc()) {
-            $price = (float) $row['price'];
-            $originalPrice = $row['original_price'] !== null ? (float) $row['original_price'] : null;
-            $discountPercent = $originalPrice !== null && $originalPrice > $price
-                ? (int) round((1 - ($price / $originalPrice)) * 100)
-                : 0;
+    if ($searchTerm !== '') {
+        $catalogueQuery .= ' AND p.name LIKE ?';
+        $filterTypes .= 's';
+        $filterParams[] = '%' . $searchTerm . '%';
+    }
 
-            $shopProducts[] = [
-                'id' => (int) $row['id'],
-                'name' => $row['name'],
-                'category' => $row['category_name'],
-                'price' => '$' . number_format($price, 2),
-                'originalPrice' => $originalPrice !== null ? '$' . number_format($originalPrice, 2) : null,
-                'discount' => $discountPercent > 0 ? '-' . $discountPercent . '%' : null,
-                'rating' => number_format((float) $row['rating'], 1),
-                'reviews' => (string) $row['review_count'],
-                'image' => $row['image'],
-                'alt' => $row['name'] . ' product image',
-                'badge' => (int) $row['is_new'] === 1 ? 'New' : ($discountPercent > 0 ? 'Sale' : null),
-            ];
+    if ($categorySlug !== '') {
+        $catalogueQuery .= ' AND c.slug = ?';
+        $filterTypes .= 's';
+        $filterParams[] = $categorySlug;
+    }
+
+    if ($minPrice !== null) {
+        $catalogueQuery .= ' AND p.price >= ?';
+        $filterTypes .= 'd';
+        $filterParams[] = $minPrice;
+    }
+
+    if ($maxPrice !== null) {
+        $catalogueQuery .= ' AND p.price <= ?';
+        $filterTypes .= 'd';
+        $filterParams[] = $maxPrice;
+    }
+
+    $catalogueQuery .= ' ORDER BY p.id ASC';
+    $catalogueStatement = $db->prepare($catalogueQuery);
+
+    if ($catalogueStatement !== false) {
+        if ($filterTypes !== '') {
+            $bindValues = [$filterTypes];
+            foreach ($filterParams as $index => &$filterParam) {
+                $bindValues[] = &$filterParam;
+            }
+            call_user_func_array([$catalogueStatement, 'bind_param'], $bindValues);
+            unset($filterParam);
         }
 
-        $catalogueResult->free();
+        if ($catalogueStatement->execute()) {
+            $catalogueStatement->bind_result(
+                $productId,
+                $productName,
+                $productPrice,
+                $productOriginalPrice,
+                $productRating,
+                $productReviewCount,
+                $productImage,
+                $productColour,
+                $productIsNew,
+                $productIsTopSelling,
+                $productCategoryName
+            );
+
+            while ($catalogueStatement->fetch()) {
+                $price = (float) $productPrice;
+                $originalPrice = $productOriginalPrice !== null ? (float) $productOriginalPrice : null;
+                $discountPercent = $originalPrice !== null && $originalPrice > $price
+                    ? (int) round((1 - ($price / $originalPrice)) * 100)
+                    : 0;
+
+                $shopProducts[] = [
+                    'id' => (int) $productId,
+                    'name' => $productName,
+                    'category' => $productCategoryName,
+                    'price' => '$' . number_format($price, 2),
+                    'originalPrice' => $originalPrice !== null ? '$' . number_format($originalPrice, 2) : null,
+                    'discount' => $discountPercent > 0 ? '-' . $discountPercent . '%' : null,
+                    'rating' => number_format((float) $productRating, 1),
+                    'reviews' => (string) $productReviewCount,
+                    'image' => $productImage,
+                    'alt' => $productName . ' product image',
+                    'badge' => (int) $productIsNew === 1 ? 'New' : ($discountPercent > 0 ? 'Sale' : null),
+                ];
+            }
+        } else {
+            error_log('F2B SHOP filtered catalogue query failed.');
+        }
+
+        $catalogueStatement->close();
     } else {
-        error_log('F2B SHOP catalogue query failed.');
+        error_log('F2B SHOP could not prepare the filtered catalogue query.');
     }
 }
 
@@ -86,31 +179,32 @@ include __DIR__ . '/includes/header.php';
                 </div>
 
                 <form class="shop-filter-form" action="shop.php" method="get">
+                    <input type="hidden" name="search" value="<?= htmlspecialchars($searchTerm, ENT_QUOTES, 'UTF-8') ?>">
                     <section class="shop-filter-section" aria-labelledby="category-heading">
                         <h3 id="category-heading">Categories</h3>
                         <div class="shop-filter-options">
                             <label class="shop-filter-option">
-                                <input type="checkbox" name="category[]" value="t-shirts">
+                                <input type="radio" name="category" value="t-shirts"<?= $categorySlug === 't-shirts' ? ' checked' : '' ?>>
                                 <span>T-Shirts</span>
                             </label>
                             <label class="shop-filter-option">
-                                <input type="checkbox" name="category[]" value="shirts">
+                                <input type="radio" name="category" value="shirts"<?= $categorySlug === 'shirts' ? ' checked' : '' ?>>
                                 <span>Shirts</span>
                             </label>
                             <label class="shop-filter-option">
-                                <input type="checkbox" name="category[]" value="hoodies">
+                                <input type="radio" name="category" value="hoodies"<?= $categorySlug === 'hoodies' ? ' checked' : '' ?>>
                                 <span>Hoodies</span>
                             </label>
                             <label class="shop-filter-option">
-                                <input type="checkbox" name="category[]" value="jackets">
+                                <input type="radio" name="category" value="jackets"<?= $categorySlug === 'jackets' ? ' checked' : '' ?>>
                                 <span>Jackets</span>
                             </label>
                             <label class="shop-filter-option">
-                                <input type="checkbox" name="category[]" value="pants">
+                                <input type="radio" name="category" value="pants"<?= $categorySlug === 'pants' ? ' checked' : '' ?>>
                                 <span>Pants</span>
                             </label>
                             <label class="shop-filter-option">
-                                <input type="checkbox" name="category[]" value="accessories">
+                                <input type="radio" name="category" value="accessories"<?= $categorySlug === 'accessories' ? ' checked' : '' ?>>
                                 <span>Accessories</span>
                             </label>
                         </div>
@@ -123,31 +217,38 @@ include __DIR__ . '/includes/header.php';
                                 <label class="shop-form-label" for="min-price">Min Price</label>
                                 <div class="shop-price-input">
                                     <span aria-hidden="true">$</span>
-                                    <input id="min-price" name="min_price" type="number" min="0" step="1" placeholder="0">
+                                    <input id="min-price" name="min_price" type="number" min="0" step="1" placeholder="0" value="<?= htmlspecialchars($minPriceInput, ENT_QUOTES, 'UTF-8') ?>">
                                 </div>
                             </div>
                             <div class="shop-price-field">
                                 <label class="shop-form-label" for="max-price">Max Price</label>
                                 <div class="shop-price-input">
                                     <span aria-hidden="true">$</span>
-                                    <input id="max-price" name="max_price" type="number" min="0" step="1" placeholder="200">
+                                    <input id="max-price" name="max_price" type="number" min="0" step="1" placeholder="200" value="<?= htmlspecialchars($maxPriceInput, ENT_QUOTES, 'UTF-8') ?>">
                                 </div>
                             </div>
                         </div>
                     </section>
 
+                    <?php if ($filterNotice !== null): ?>
+                        <p class="shop-filter-feedback" role="status"><?= htmlspecialchars($filterNotice, ENT_QUOTES, 'UTF-8') ?></p>
+                    <?php endif; ?>
+
                     <div class="shop-filter-actions">
                         <button class="button button--dark shop-filter-submit" type="submit">Apply Filters</button>
-                        <button class="shop-clear-filters" type="button">Clear Filters</button>
+                        <a class="shop-clear-filters" href="shop.php">Clear Filters</a>
                     </div>
                 </form>
             </aside>
 
             <section class="shop-catalogue" aria-labelledby="catalogue-heading">
                 <form class="shop-search" action="shop.php" method="get">
+                    <input type="hidden" name="category" value="<?= htmlspecialchars($categorySlug, ENT_QUOTES, 'UTF-8') ?>">
+                    <input type="hidden" name="min_price" value="<?= htmlspecialchars($minPriceInput, ENT_QUOTES, 'UTF-8') ?>">
+                    <input type="hidden" name="max_price" value="<?= htmlspecialchars($maxPriceInput, ENT_QUOTES, 'UTF-8') ?>">
                     <div class="shop-search__field">
                         <label class="shop-form-label" for="catalogue-search">Search products</label>
-                        <input id="catalogue-search" name="search" type="search" placeholder="Search products..." autocomplete="off">
+                        <input id="catalogue-search" name="search" type="search" placeholder="Search products..." autocomplete="off" value="<?= htmlspecialchars($searchTerm, ENT_QUOTES, 'UTF-8') ?>">
                     </div>
                     <button class="button button--dark shop-search__submit" type="submit">Search</button>
                 </form>
@@ -169,7 +270,7 @@ include __DIR__ . '/includes/header.php';
                     <div class="shop-empty-state__mark" aria-hidden="true">&#8212;</div>
                     <h2 id="empty-state-heading">No products found</h2>
                     <p>Try adjusting your search or filters to find something you love.</p>
-                    <button class="button button--outline shop-empty-state__button" type="button">Clear Filters</button>
+                    <a class="button button--outline shop-empty-state__button" href="shop.php">Clear Filters</a>
                 </section>
 
                 <div class="shop-product-grid">
