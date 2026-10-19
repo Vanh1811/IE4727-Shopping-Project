@@ -98,6 +98,11 @@ if ($productId !== false && $productId !== null && $productId > 0 && $db !== nul
     }
 }
 
+if ($product !== null && $product['images'] === []) {
+    error_log('F2B SHOP product has no usable main image.');
+    $product = null;
+}
+
 if ($product === null) {
     $pageTitle = 'Product Not Found';
     $pageDescription = 'The requested product could not be found.';
