@@ -5,6 +5,7 @@ $pageStylesheet = 'css/admin.css';
 
 require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/admin_auth.php';
+require_once __DIR__ . '/includes/admin_order.php';
 
 f2bAdminRequireAuth();
 
@@ -67,70 +68,10 @@ if (is_object($db) && method_exists($db, 'prepare')) {
     }
 
     foreach ($orders as $order) {
-        $itemStatement = $db->prepare(
-            'SELECT oi.id, oi.product_name, oi.size, oi.colour, oi.quantity, oi.unit_price, oi.line_total, '
-            . 'm.id AS mockup_id, m.status AS mockup_status, m.revision, '
-            . '(SELECT latest_review.change_request FROM mockup_reviews AS latest_review '
-            . 'WHERE latest_review.mockup_id = m.id ORDER BY latest_review.id DESC LIMIT 1) AS latest_change_request '
-            . 'FROM order_items AS oi LEFT JOIN mockups AS m ON m.order_item_id = oi.id '
-            . 'WHERE oi.order_id = ? ORDER BY oi.id ASC'
-        );
-
-        if ($itemStatement === false) {
+        $itemsByOrder[$order['id']] = f2bAdminLoadOrderItems($db, $order['id']);
+        if ($itemsByOrder[$order['id']] === array() && $order['item_count'] > 0) {
             $loadError = 'Some order details could not be loaded.';
-            continue;
         }
-
-        $itemOrderId = $order['id'];
-        $itemStatement->bind_param('i', $itemOrderId);
-        if (!$itemStatement->execute()) {
-            $itemStatement->close();
-            $loadError = 'Some order details could not be loaded.';
-            continue;
-        }
-
-        $itemId = null;
-        $productName = null;
-        $size = null;
-        $colour = null;
-        $quantity = null;
-        $unitPrice = null;
-        $lineTotal = null;
-        $mockupId = null;
-        $mockupStatus = null;
-        $revision = null;
-        $latestChangeRequest = null;
-        $itemStatement->bind_result(
-            $itemId,
-            $productName,
-            $size,
-            $colour,
-            $quantity,
-            $unitPrice,
-            $lineTotal,
-            $mockupId,
-            $mockupStatus,
-            $revision,
-            $latestChangeRequest
-        );
-
-        $itemsByOrder[$order['id']] = array();
-        while ($itemStatement->fetch()) {
-            $itemsByOrder[$order['id']][] = array(
-                'id' => (int) $itemId,
-                'product_name' => (string) $productName,
-                'size' => (string) $size,
-                'colour' => (string) $colour,
-                'quantity' => (int) $quantity,
-                'unit_price' => (float) $unitPrice,
-                'line_total' => (float) $lineTotal,
-                'mockup_id' => $mockupId === null ? null : (int) $mockupId,
-                'mockup_status' => $mockupStatus === null ? 'PENDING' : (string) $mockupStatus,
-                'revision' => $revision === null ? null : (int) $revision,
-                'latest_change_request' => $latestChangeRequest === null ? '' : (string) $latestChangeRequest,
-            );
-        }
-        $itemStatement->close();
     }
 } else {
     $loadError = 'The database is not available.';
@@ -200,7 +141,20 @@ include __DIR__ . '/includes/header.php';
                                     <td><?= (int) $order['quantity_count'] ?> across <?= (int) $order['item_count'] ?> variants</td>
                                     <td><strong>$<?= number_format($order['total'], 2) ?></strong></td>
                                     <td><span class="admin-status admin-status--<?= htmlspecialchars(strtolower($order['status']), ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars(str_replace('_', ' ', $order['status']), ENT_QUOTES, 'UTF-8') ?></span></td>
-                                    <td><a class="admin-table-link" href="admin-orders.php?page=<?= (int) $page ?>#order-<?= (int) $order['id'] ?>">VIEW DETAILS</a></td>
+                                    <td>
+                                        <div class="admin-table-actions">
+                                            <a class="admin-table-link" href="admin-orders.php?page=<?= (int) $page ?>&order=<?= (int) $order['id'] ?>#order-<?= (int) $order['id'] ?>">VIEW DETAILS</a>
+                                            <?php if ($order['status'] === 'CONFIRMED' || $order['status'] === 'PROCESSING'): ?>
+                                                <form class="admin-status-form" action="admin-order-action.php" method="post">
+                                                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars((string) $actionCsrfToken, ENT_QUOTES, 'UTF-8') ?>">
+                                                    <input type="hidden" name="action" value="update_status">
+                                                    <input type="hidden" name="order_id" value="<?= (int) $order['id'] ?>">
+                                                    <input type="hidden" name="next_status" value="<?= $order['status'] === 'CONFIRMED' ? 'PROCESSING' : 'COMPLETED' ?>">
+                                                    <button class="admin-table-link admin-table-button" type="submit"><?= $order['status'] === 'CONFIRMED' ? 'START PRODUCTION' : 'MARK COMPLETED' ?></button>
+                                                </form>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
                                 </tr>
                                 <tr class="admin-order-detail-row">
                                     <td colspan="7">
@@ -208,7 +162,7 @@ include __DIR__ . '/includes/header.php';
                                             <summary>Order #<?= (int) $order['id'] ?> items and mock-up records</summary>
                                             <div class="admin-order-items">
                                                 <?php foreach ($itemsByOrder[$order['id']] ?? array() as $item): ?>
-                                                    <article class="admin-order-item">
+                                                    <article class="admin-order-item"<?= $item['mockup_id'] !== null ? ' id="mockup-' . (int) $item['mockup_id'] . '"' : '' ?>>
                                                         <div>
                                                             <h3><?= htmlspecialchars($item['product_name'], ENT_QUOTES, 'UTF-8') ?></h3>
                                                             <p>Size <?= htmlspecialchars($item['size'], ENT_QUOTES, 'UTF-8') ?> · <?= htmlspecialchars($item['colour'], ENT_QUOTES, 'UTF-8') ?> · Qty <?= (int) $item['quantity'] ?></p>
@@ -217,11 +171,54 @@ include __DIR__ . '/includes/header.php';
                                                             <span>$<?= number_format($item['line_total'], 2) ?></span>
                                                             <span class="admin-status admin-status--<?= htmlspecialchars(strtolower($item['mockup_status']), ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars(str_replace('_', ' ', $item['mockup_status']), ENT_QUOTES, 'UTF-8') ?></span>
                                                             <?php if ($item['mockup_id'] !== null): ?>
-                                                                <a class="admin-table-link" href="admin-orders.php?page=<?= (int) $page ?>&order=<?= (int) $order['id'] ?>#order-<?= (int) $order['id'] ?>">MOCK-UP #<?= (int) $item['mockup_id'] ?></a>
+                                                                <a class="admin-table-link" href="admin-orders.php?page=<?= (int) $page ?>&order=<?= (int) $order['id'] ?>#mockup-<?= (int) $item['mockup_id'] ?>">MOCK-UP #<?= (int) $item['mockup_id'] ?></a>
                                                             <?php else: ?>
                                                                 <span class="admin-muted">No mock-up yet</span>
                                                             <?php endif; ?>
                                                         </div>
+                                                        <?php if ($item['mockup_status'] === 'PENDING' || $item['mockup_status'] === 'CHANGES_REQUESTED'): ?>
+                                                            <?php
+                                                            $previewChoices = array();
+                                                            foreach (array($item['product_image'], $item['preview_image']) as $imageCandidate) {
+                                                                $safeImage = f2bAdminLocalImagePath($imageCandidate);
+                                                                if ($safeImage !== null && !in_array($safeImage, $previewChoices, true)) {
+                                                                    $previewChoices[] = $safeImage;
+                                                                }
+                                                            }
+                                                            if ($previewChoices === array()) {
+                                                                $previewChoices[] = 'images/products/studio-overshirt.svg';
+                                                            }
+                                                            ?>
+                                                            <form class="admin-mockup-form" action="admin-order-action.php" method="post">
+                                                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars((string) $actionCsrfToken, ENT_QUOTES, 'UTF-8') ?>">
+                                                                <input type="hidden" name="action" value="publish_mockup">
+                                                                <input type="hidden" name="order_id" value="<?= (int) $order['id'] ?>">
+                                                                <input type="hidden" name="order_item_id" value="<?= (int) $item['id'] ?>">
+                                                                <div class="admin-form-grid">
+                                                                    <div class="admin-form-field">
+                                                                        <label for="preview-image-<?= (int) $item['id'] ?>">Preview image</label>
+                                                                        <select id="preview-image-<?= (int) $item['id'] ?>" name="preview_image" required>
+                                                                            <?php foreach ($previewChoices as $previewChoice): ?>
+                                                                                <option value="<?= htmlspecialchars($previewChoice, ENT_QUOTES, 'UTF-8') ?>"<?= $previewChoice === $item['preview_image'] ? ' selected' : '' ?>><?= htmlspecialchars(basename($previewChoice), ENT_QUOTES, 'UTF-8') ?></option>
+                                                                            <?php endforeach; ?>
+                                                                        </select>
+                                                                    </div>
+                                                                    <div class="admin-form-field">
+                                                                        <label for="print-position-<?= (int) $item['id'] ?>">Print position</label>
+                                                                        <input id="print-position-<?= (int) $item['id'] ?>" name="print_position" value="<?= htmlspecialchars($item['print_position'], ENT_QUOTES, 'UTF-8') ?>" maxlength="100" required>
+                                                                    </div>
+                                                                    <div class="admin-form-field">
+                                                                        <label for="print-colour-<?= (int) $item['id'] ?>">Print colour</label>
+                                                                        <input id="print-colour-<?= (int) $item['id'] ?>" name="print_colour" value="<?= htmlspecialchars($item['print_colour'], ENT_QUOTES, 'UTF-8') ?>" maxlength="100" required>
+                                                                    </div>
+                                                                    <div class="admin-form-field admin-form-field--wide">
+                                                                        <label for="custom-text-<?= (int) $item['id'] ?>">Custom text <span>(optional)</span></label>
+                                                                        <textarea id="custom-text-<?= (int) $item['id'] ?>" name="custom_text" maxlength="500" rows="2"><?= htmlspecialchars($item['custom_text'], ENT_QUOTES, 'UTF-8') ?></textarea>
+                                                                    </div>
+                                                                </div>
+                                                                <button class="button button--small" type="submit"><?= $item['mockup_status'] === 'CHANGES_REQUESTED' ? 'PUBLISH REVISION' : 'PUBLISH MOCK-UP' ?></button>
+                                                            </form>
+                                                        <?php endif; ?>
                                                         <?php if ($item['latest_change_request'] !== ''): ?>
                                                             <p class="admin-order-item__feedback"><strong>Latest customer feedback:</strong> <?= htmlspecialchars($item['latest_change_request'], ENT_QUOTES, 'UTF-8') ?></p>
                                                         <?php endif; ?>
