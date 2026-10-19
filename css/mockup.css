@@ -2,6 +2,35 @@
     padding: var(--space-4) 0 var(--space-8);
 }
 
+.mockup-not-found {
+    max-width: 42rem;
+    margin: var(--space-8) auto;
+    padding: var(--space-7) var(--space-5);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-lg);
+    text-align: center;
+}
+
+.mockup-not-found h1 {
+    margin: 0;
+    color: var(--color-ink);
+    font-size: clamp(2.4rem, 7vw, 5rem);
+    letter-spacing: -0.07em;
+    line-height: 0.95;
+}
+
+.mockup-not-found p:not(.eyebrow) {
+    max-width: 30rem;
+    margin: var(--space-3) auto 0;
+    color: var(--color-muted);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.mockup-not-found .button {
+    margin-top: var(--space-5);
+}
+
 .mockup-breadcrumb {
     display: flex;
     flex-wrap: wrap;
@@ -130,6 +159,7 @@
     letter-spacing: 0.12em;
     line-height: 1.05;
     text-align: center;
+    white-space: pre-line;
     transform: translate(-50%, -50%) rotate(-2deg);
 }
 
@@ -247,6 +277,21 @@
     background: #dcebe2;
 }
 
+.status-badge--pending {
+    color: #6c5a2d;
+    background: #ece8dc;
+}
+
+.status-badge--changes {
+    color: #8b4d1c;
+    background: #ffe8d7;
+}
+
+.status-badge--approved {
+    color: var(--color-success);
+    background: #dcebe2;
+}
+
 .customization-card,
 .review-card {
     margin-top: var(--space-5);
@@ -276,6 +321,61 @@
 
 .review-card {
     background: var(--color-background);
+}
+
+.review-feedback--saved {
+    margin-top: var(--space-5);
+    padding: var(--space-4);
+    border: 1px solid #e9cbb8;
+    border-radius: var(--radius-md);
+    background: #fff8f2;
+}
+
+.review-feedback--saved h2 {
+    margin: 0;
+    color: var(--color-ink);
+    font-size: 1.2rem;
+    letter-spacing: -0.04em;
+}
+
+.review-feedback--saved > p:last-child {
+    margin: var(--space-3) 0 0;
+    color: var(--color-muted);
+    font-size: 0.82rem;
+    line-height: 1.55;
+    white-space: normal;
+}
+
+.mockup-state-message {
+    margin-top: var(--space-5);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+}
+
+.mockup-state-message h2 {
+    margin: 0;
+    color: var(--color-ink);
+    font-size: 1.15rem;
+    letter-spacing: -0.04em;
+}
+
+.mockup-state-message > p:last-child {
+    margin: var(--space-2) 0 0;
+    color: var(--color-muted);
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
+
+.mockup-state-message--attention {
+    border-color: #e9cbb8;
+    background: #fff8f2;
+}
+
+.mockup-state-message--success {
+    border-color: #b8d4c4;
+    background: #f0f8f2;
 }
 
 .review-card__heading {
