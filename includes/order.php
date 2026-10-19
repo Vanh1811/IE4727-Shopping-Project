@@ -4,6 +4,8 @@
  * Shared order input validation and persistence helpers.
  */
 
+require_once __DIR__ . '/order_access.php';
+
 function f2bOrderReadInput($input, $key)
 {
     if (!is_array($input) || !isset($input[$key]) || !is_scalar($input[$key])) {
@@ -89,6 +91,13 @@ function f2bOrderCreate($db, $customer, $items, $totals)
         return array('success' => false, 'order_id' => null);
     }
 
+    $accessCode = f2bOrderGenerateAccessCode();
+    $accessTokenHash = $accessCode !== null ? f2bOrderAccessHash($accessCode) : null;
+
+    if ($accessCode === null || $accessTokenHash === null) {
+        return array('success' => false, 'order_id' => null);
+    }
+
     if (!$db->begin_transaction()) {
         error_log('F2B SHOP could not begin the order transaction.');
         return array('success' => false, 'order_id' => null);
@@ -97,8 +106,8 @@ function f2bOrderCreate($db, $customer, $items, $totals)
     $orderStatement = $db->prepare(
         'INSERT INTO orders '
         . '(full_name, email, phone, delivery_address, postal_code, special_instructions, '
-        . 'subtotal, discount, delivery_fee, total, status) '
-        . 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        . 'subtotal, discount, delivery_fee, total, status, access_token_hash) '
+        . 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     );
 
     if ($orderStatement === false) {
@@ -131,7 +140,8 @@ function f2bOrderCreate($db, $customer, $items, $totals)
         $discount,
         $deliveryFee,
         $total,
-        $status
+        $status,
+        $accessTokenHash
     );
 
     if (!$orderStatement->execute()) {
@@ -227,7 +237,15 @@ function f2bOrderCreate($db, $customer, $items, $totals)
         return array('success' => false, 'order_id' => null);
     }
 
-    return array('success' => true, 'order_id' => $orderId);
+    if (!f2bOrderGrantSessionAccess($orderId) || !f2bOrderStoreInitialAccessCode($orderId, $accessCode)) {
+        error_log('F2B SHOP could not initialize the new order session access.');
+    }
+
+    return array(
+        'success' => true,
+        'order_id' => $orderId,
+        'access_code' => $accessCode,
+    );
 }
 
 function f2bOrderValidateId($value)
@@ -253,7 +271,7 @@ function f2bOrderLoad($db, $orderId)
 
     $orderStatement = $db->prepare(
         'SELECT id, full_name, email, phone, delivery_address, postal_code, '
-        . 'special_instructions, subtotal, discount, delivery_fee, total, status, created_at '
+        . 'special_instructions, subtotal, discount, delivery_fee, total, status, email_sent_at, created_at '
         . 'FROM orders WHERE id = ? LIMIT 1'
     );
 
@@ -281,6 +299,7 @@ function f2bOrderLoad($db, $orderId)
     $deliveryFee = null;
     $total = null;
     $status = null;
+    $emailSentAt = null;
     $createdAt = null;
 
     $orderStatement->bind_result(
@@ -296,6 +315,7 @@ function f2bOrderLoad($db, $orderId)
         $deliveryFee,
         $total,
         $status,
+        $emailSentAt,
         $createdAt
     );
 
@@ -376,6 +396,7 @@ function f2bOrderLoad($db, $orderId)
             'delivery_fee' => (float) $deliveryFee,
             'total' => (float) $total,
             'status' => (string) $status,
+            'email_sent_at' => $emailSentAt === null ? '' : (string) $emailSentAt,
             'created_at' => (string) $createdAt,
         ),
         'items' => $items,

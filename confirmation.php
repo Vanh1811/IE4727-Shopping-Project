@@ -5,12 +5,27 @@ $pageStylesheet = 'css/confirmation.css';
 
 require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/order.php';
+require_once __DIR__ . '/includes/order_access.php';
 
 $requestedOrderId = isset($_GET['order']) && is_scalar($_GET['order']) ? $_GET['order'] : null;
 $orderId = f2bOrderValidateId($requestedOrderId);
-$orderData = $orderId !== null ? f2bOrderLoad($db, $orderId) : null;
+$hasOrderAccess = $orderId !== null && f2bOrderHasSessionAccess($orderId);
+$orderData = $hasOrderAccess ? f2bOrderLoad($db, $orderId) : null;
 $order = $orderData !== null ? $orderData['order'] : null;
 $confirmedItems = $orderData !== null ? $orderData['items'] : array();
+$initialAccessCode = $order !== null ? f2bOrderConsumeInitialAccessCode($orderId) : null;
+$mailStatus = null;
+$mailMessage = '';
+
+if ($order !== null && f2bOrderAccessStartSession()) {
+    $lastOrderId = isset($_SESSION['last_order_id']) ? (int) $_SESSION['last_order_id'] : 0;
+    if ($lastOrderId === (int) $order['id']) {
+        $mailStatus = isset($_SESSION['last_order_mail_status']) ? (string) $_SESSION['last_order_mail_status'] : null;
+        $mailMessage = isset($_SESSION['last_order_mail_message']) ? (string) $_SESSION['last_order_mail_message'] : '';
+        unset($_SESSION['last_order_mail_status'], $_SESSION['last_order_mail_message']);
+    }
+}
+
 $orderDate = $order !== null ? date('j F Y', strtotime($order['created_at'])) : '';
 $statusLabel = $order !== null ? strtoupper(str_replace('_', ' ', $order['status'])) : '';
 
@@ -30,8 +45,8 @@ include __DIR__ . '/includes/header.php';
         <?php if ($order === null): ?>
             <section class="confirmation-not-found" aria-labelledby="confirmation-not-found-title">
                 <p class="eyebrow">Order lookup</p>
-                <h1 id="confirmation-not-found-title">ORDER NOT FOUND</h1>
-                <p>We could not find the order you're looking for.</p>
+                <h1 id="confirmation-not-found-title">ORDER NOT FOUND OR ACCESS REQUIRED</h1>
+                <p>We could not verify access to that order. Use the guest order access form on My Orders with your order number and saved access code.</p>
                 <a class="button button--dark" href="shop.php">Continue Shopping <span aria-hidden="true">&rarr;</span></a>
             </section>
         <?php else: ?>
@@ -43,8 +58,19 @@ include __DIR__ . '/includes/header.php';
                     <p class="confirmation-intro__message">Thank you, <?= htmlspecialchars($order['full_name'], ENT_QUOTES, 'UTF-8') ?>. Your order is saved and ready for the next step: preparing your design mock-up.</p>
 
                     <div class="confirmation-note" role="note">
-                        <strong>Order acknowledgement</strong>
-                        <span>Your order has been recorded successfully. Email delivery is not configured for this local environment.</span>
+                        <?php if ($initialAccessCode !== null): ?>
+                            <strong>Save your guest access code</strong>
+                            <span>Your one-time access code is <code><?= htmlspecialchars($initialAccessCode, ENT_QUOTES, 'UTF-8') ?></code>. Save it with order #<?= (int) $order['id'] ?> to access this order from another session.</span>
+                        <?php else: ?>
+                            <strong>Order acknowledgement</strong>
+                            <?php if ($mailStatus === 'sent' || $order['email_sent_at'] !== ''): ?>
+                                <span><?= htmlspecialchars($mailMessage !== '' ? $mailMessage : 'The local acknowledgement email was sent successfully.', ENT_QUOTES, 'UTF-8') ?></span>
+                            <?php elseif ($mailStatus === 'failed'): ?>
+                                <span><?= htmlspecialchars($mailMessage !== '' ? $mailMessage : 'The order was saved, but the local acknowledgement email could not be sent.', ENT_QUOTES, 'UTF-8') ?></span>
+                            <?php else: ?>
+                                <span>Local acknowledgement email is not configured for this environment. Your order is still saved securely.</span>
+                            <?php endif; ?>
+                        <?php endif; ?>
                     </div>
 
                     <dl class="confirmation-meta">

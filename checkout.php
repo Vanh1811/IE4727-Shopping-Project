@@ -6,6 +6,7 @@ $pageStylesheet = 'css/checkout.css';
 require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/cart.php';
 require_once __DIR__ . '/includes/order.php';
+require_once __DIR__ . '/includes/mail.php';
 
 $checkoutItems = f2bCartLoadItems($db);
 
@@ -26,26 +27,42 @@ $checkoutValues = array(
 );
 $checkoutErrors = array();
 $checkoutFeedback = '';
+$checkoutCsrfToken = f2bCsrfToken('checkout');
 
 if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $validation = f2bOrderValidateCheckout($_POST);
-    $checkoutValues = $validation['values'];
-    $checkoutErrors = $validation['errors'];
+    $postedCsrfToken = isset($_POST['csrf_token']) ? $_POST['csrf_token'] : null;
 
-    if (!$checkoutErrors) {
-        $orderResult = f2bOrderCreate($db, $checkoutValues, $checkoutItems, $checkoutTotals);
-
-        if ($orderResult['success']) {
-            f2bCartClear();
-            f2bCartEnsureSession();
-            $_SESSION['last_order_id'] = $orderResult['order_id'];
-            header('Location: confirmation.php?order=' . $orderResult['order_id'], true, 303);
-            exit;
-        }
-
-        $checkoutFeedback = 'We could not place your order. Your cart is still available; please try again.';
+    if (!f2bCsrfValidate($postedCsrfToken, 'checkout')) {
+        $checkoutFeedback = 'Your session expired. Refresh the page and try again.';
     } else {
-        $checkoutFeedback = 'Please correct the highlighted fields before continuing.';
+        $validation = f2bOrderValidateCheckout($_POST);
+        $checkoutValues = $validation['values'];
+        $checkoutErrors = $validation['errors'];
+
+        if (!$checkoutErrors) {
+            $orderResult = f2bOrderCreate($db, $checkoutValues, $checkoutItems, $checkoutTotals);
+
+            if ($orderResult['success']) {
+                $mailResult = f2bOrderSendLocalAcknowledgement(
+                    $db,
+                    $orderResult['order_id'],
+                    $checkoutValues,
+                    $checkoutTotals
+                );
+                f2bOrderAccessStartSession();
+                $_SESSION['last_order_mail_status'] = $mailResult['status'];
+                $_SESSION['last_order_mail_message'] = $mailResult['message'];
+                f2bCartClear();
+                f2bCartEnsureSession();
+                $_SESSION['last_order_id'] = $orderResult['order_id'];
+                header('Location: confirmation.php?order=' . $orderResult['order_id'], true, 303);
+                exit;
+            }
+
+            $checkoutFeedback = 'We could not place your order. Your cart is still available; please try again.';
+        } else {
+            $checkoutFeedback = 'Please correct the highlighted fields before continuing.';
+        }
     }
 }
 
@@ -77,6 +94,7 @@ include __DIR__ . '/includes/header.php';
                 </div>
 
                 <form class="checkout-form<?= $checkoutErrors ? ' was-validated' : '' ?>" id="checkout-form" action="checkout.php" method="post" novalidate>
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars((string) $checkoutCsrfToken, ENT_QUOTES, 'UTF-8') ?>">
                     <div class="checkout-form__fields">
                         <div class="form-field">
                             <label for="full-name">Full Name <span class="required-marker" aria-hidden="true">*</span></label>
