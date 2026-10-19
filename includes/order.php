@@ -228,3 +228,155 @@ function f2bOrderCreate($db, $customer, $items, $totals)
 
     return array('success' => true, 'order_id' => $orderId);
 }
+
+function f2bOrderValidateId($value)
+{
+    if (is_bool($value) || is_float($value) || is_array($value) || is_object($value)) {
+        return null;
+    }
+
+    $value = trim((string) $value);
+    if ($value === '' || preg_match('/^\d+$/', $value) !== 1) {
+        return null;
+    }
+
+    $orderId = (int) $value;
+    return $orderId > 0 ? $orderId : null;
+}
+
+function f2bOrderLoad($db, $orderId)
+{
+    if (!is_object($db) || !method_exists($db, 'prepare') || $orderId < 1) {
+        return null;
+    }
+
+    $orderStatement = $db->prepare(
+        'SELECT id, full_name, email, phone, delivery_address, postal_code, '
+        . 'special_instructions, subtotal, discount, delivery_fee, total, status, created_at '
+        . 'FROM orders WHERE id = ? LIMIT 1'
+    );
+
+    if ($orderStatement === false) {
+        error_log('F2B SHOP could not prepare the order lookup.');
+        return null;
+    }
+
+    $orderStatement->bind_param('i', $orderId);
+    if (!$orderStatement->execute()) {
+        $orderStatement->close();
+        error_log('F2B SHOP order lookup failed.');
+        return null;
+    }
+
+    $rowId = null;
+    $fullName = null;
+    $email = null;
+    $phone = null;
+    $deliveryAddress = null;
+    $postalCode = null;
+    $specialInstructions = null;
+    $subtotal = null;
+    $discount = null;
+    $deliveryFee = null;
+    $total = null;
+    $status = null;
+    $createdAt = null;
+
+    $orderStatement->bind_result(
+        $rowId,
+        $fullName,
+        $email,
+        $phone,
+        $deliveryAddress,
+        $postalCode,
+        $specialInstructions,
+        $subtotal,
+        $discount,
+        $deliveryFee,
+        $total,
+        $status,
+        $createdAt
+    );
+
+    if (!$orderStatement->fetch()) {
+        $orderStatement->close();
+        return null;
+    }
+
+    $orderStatement->close();
+
+    $itemStatement = $db->prepare(
+        'SELECT oi.product_id, oi.product_name, oi.size, oi.colour, oi.unit_price, '
+        . 'oi.quantity, oi.line_total, p.image '
+        . 'FROM order_items AS oi '
+        . 'INNER JOIN products AS p ON p.id = oi.product_id '
+        . 'WHERE oi.order_id = ? ORDER BY oi.id ASC'
+    );
+
+    if ($itemStatement === false) {
+        error_log('F2B SHOP could not prepare the order item lookup.');
+        return null;
+    }
+
+    $itemStatement->bind_param('i', $orderId);
+    if (!$itemStatement->execute()) {
+        $itemStatement->close();
+        error_log('F2B SHOP order item lookup failed.');
+        return null;
+    }
+
+    $productId = null;
+    $productName = null;
+    $size = null;
+    $colour = null;
+    $unitPrice = null;
+    $quantity = null;
+    $lineTotal = null;
+    $image = null;
+    $items = array();
+
+    $itemStatement->bind_result(
+        $productId,
+        $productName,
+        $size,
+        $colour,
+        $unitPrice,
+        $quantity,
+        $lineTotal,
+        $image
+    );
+
+    while ($itemStatement->fetch()) {
+        $items[] = array(
+            'product_id' => (int) $productId,
+            'name' => (string) $productName,
+            'size' => (string) $size,
+            'colour' => (string) $colour,
+            'price' => (float) $unitPrice,
+            'quantity' => (int) $quantity,
+            'line_total' => (float) $lineTotal,
+            'image' => (string) $image,
+        );
+    }
+
+    $itemStatement->close();
+
+    return array(
+        'order' => array(
+            'id' => (int) $rowId,
+            'full_name' => (string) $fullName,
+            'email' => (string) $email,
+            'phone' => (string) $phone,
+            'delivery_address' => (string) $deliveryAddress,
+            'postal_code' => (string) $postalCode,
+            'special_instructions' => $specialInstructions === null ? '' : (string) $specialInstructions,
+            'subtotal' => (float) $subtotal,
+            'discount' => (float) $discount,
+            'delivery_fee' => (float) $deliveryFee,
+            'total' => (float) $total,
+            'status' => (string) $status,
+            'created_at' => (string) $createdAt,
+        ),
+        'items' => $items,
+    );
+}
