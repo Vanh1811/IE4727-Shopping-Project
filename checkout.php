@@ -33,7 +33,17 @@ if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST') 
     $checkoutErrors = $validation['errors'];
 
     if (!$checkoutErrors) {
-        $checkoutFeedback = 'Your details are valid and ready to be submitted.';
+        $orderResult = f2bOrderCreate($db, $checkoutValues, $checkoutItems, $checkoutTotals);
+
+        if ($orderResult['success']) {
+            f2bCartClear();
+            f2bCartEnsureSession();
+            $_SESSION['last_order_id'] = $orderResult['order_id'];
+            header('Location: confirmation.php?order=' . $orderResult['order_id'], true, 303);
+            exit;
+        }
+
+        $checkoutFeedback = 'We could not place your order. Your cart is still available; please try again.';
     } else {
         $checkoutFeedback = 'Please correct the highlighted fields before continuing.';
     }
