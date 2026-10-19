@@ -64,7 +64,14 @@ include __DIR__ . '/includes/header.php';
                 </div>
                 <p class="product-info__description"><?= htmlspecialchars($product['description'], ENT_QUOTES, 'UTF-8') ?></p>
 
-                <fieldset class="product-option">
+                <form class="product-info__form" id="product-cart-form" action="cart-action.php" method="post">
+                    <input type="hidden" name="action" value="add">
+                    <input type="hidden" name="product_id" value="7">
+                    <input type="hidden" name="colour" id="product-colour" value="Black">
+                    <input type="hidden" name="size" id="product-size" value="">
+                    <input type="hidden" name="quantity" id="product-quantity" value="1">
+
+                    <fieldset class="product-option">
                     <legend>Colour: <strong id="selected-colour"><?= htmlspecialchars($product['colour'], ENT_QUOTES, 'UTF-8') ?></strong></legend>
                     <div class="product-swatches" aria-label="Colour options">
                         <button class="product-swatch product-swatch--black" type="button" data-colour="Black" aria-label="Black" aria-pressed="true"></button>
@@ -72,9 +79,9 @@ include __DIR__ . '/includes/header.php';
                         <button class="product-swatch product-swatch--navy" type="button" data-colour="Navy" aria-label="Navy" aria-pressed="false"></button>
                         <button class="product-swatch product-swatch--green" type="button" data-colour="Green" aria-label="Green" aria-pressed="false"></button>
                     </div>
-                </fieldset>
+                    </fieldset>
 
-                <fieldset class="product-option">
+                    <fieldset class="product-option">
                     <legend class="sr-only">Size</legend>
                     <div class="product-option__heading">
                         <span aria-hidden="true">Size</span>
@@ -86,19 +93,20 @@ include __DIR__ . '/includes/header.php';
                         <button type="button" data-size="L" aria-pressed="false">L</button>
                         <button type="button" data-size="XL" aria-pressed="false">XL</button>
                     </div>
-                </fieldset>
+                    </fieldset>
 
-                <div class="product-quantity" aria-label="Quantity selector">
+                    <div class="product-quantity" aria-label="Quantity selector">
                     <span class="product-quantity__label">Quantity</span>
                     <div class="product-quantity__controls">
                         <button type="button" data-quantity-action="decrease" aria-label="Decrease quantity">−</button>
                         <output id="product-quantity-value" class="product-quantity__value" aria-live="polite">1</output>
                         <button type="button" data-quantity-action="increase" aria-label="Increase quantity">+</button>
                     </div>
-                </div>
+                    </div>
 
-                <button class="button button--dark product-info__add" id="add-to-cart" type="button">Add to Cart <span aria-hidden="true">→</span></button>
-                <p class="product-info__note" id="product-feedback" role="status" aria-live="polite"></p>
+                    <button class="button button--dark product-info__add" id="add-to-cart" type="submit">Add to Cart <span aria-hidden="true">→</span></button>
+                    <p class="product-info__note" id="product-feedback" role="status" aria-live="polite"></p>
+                </form>
 
                 <dl class="product-highlights">
                     <div><dt>Fit</dt><dd>Relaxed</dd></div>

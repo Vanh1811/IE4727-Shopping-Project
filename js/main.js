@@ -38,6 +38,9 @@
         const sizeButtons = productPage.querySelectorAll('.product-size-grid button');
         const selectedColour = productPage.querySelector('#selected-colour');
         const quantityValue = productPage.querySelector('#product-quantity-value');
+        const colourInput = productPage.querySelector('#product-colour');
+        const sizeInput = productPage.querySelector('#product-size');
+        const quantityInput = productPage.querySelector('#product-quantity');
         const feedback = productPage.querySelector('#product-feedback');
         const addToCart = productPage.querySelector('#add-to-cart');
         let quantity = 1;
@@ -66,12 +69,20 @@
             if (selectedColour) {
                 selectedColour.textContent = button.dataset.colour;
             }
+
+            if (colourInput) {
+                colourInput.value = button.dataset.colour;
+            }
         });
     });
 
     sizeButtons.forEach((button) => {
         button.addEventListener('click', () => {
             sizeButtons.forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+
+            if (sizeInput) {
+                sizeInput.value = button.dataset.size;
+            }
         });
     });
 
@@ -84,14 +95,19 @@
                 quantityValue.value = quantity;
                 quantityValue.textContent = String(quantity);
             }
+
+            if (quantityInput) {
+                quantityInput.value = String(quantity);
+            }
         });
     });
 
-    addToCart?.addEventListener('click', () => {
+    addToCart?.addEventListener('click', (event) => {
         const activeColour = productPage.querySelector('.product-swatch[aria-pressed="true"]')?.dataset.colour;
         const activeSize = productPage.querySelector('.product-size-grid button[aria-pressed="true"]')?.dataset.size;
 
         if (!activeColour || !activeSize) {
+            event.preventDefault();
             if (feedback) {
                 feedback.textContent = 'Choose a colour and size before adding this item.';
             }
