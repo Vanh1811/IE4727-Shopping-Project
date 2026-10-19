@@ -22,6 +22,22 @@
     font-size: 1.05rem;
 }
 
+.cart-feedback {
+    margin: calc(var(--space-4) * -1) 0 var(--space-5);
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-ink);
+    background: var(--color-surface);
+    font-size: 0.85rem;
+}
+
+.cart-feedback--error {
+    color: #8d2e2e;
+    border-color: #e4b8b8;
+    background: #fff4f2;
+}
+
 .cart-layout {
     display: grid;
     grid-template-columns: minmax(0, 1.3fr) minmax(18rem, 0.7fr);
@@ -111,6 +127,10 @@
     align-items: start;
     justify-content: space-between;
     gap: var(--space-3);
+}
+
+.cart-item__remove-form {
+    flex-shrink: 0;
 }
 
 .cart-item__eyebrow {
