@@ -191,40 +191,48 @@ include __DIR__ . '/includes/header.php';
                     </div>
                     <p class="product-info__description"><?= htmlspecialchars($product['description'], ENT_QUOTES, 'UTF-8') ?></p>
 
-                    <fieldset class="product-option">
-                        <legend>Colour: <strong id="selected-colour"><?= htmlspecialchars($product['colour'], ENT_QUOTES, 'UTF-8') ?></strong></legend>
-                        <div class="product-swatches" aria-label="Colour options">
-                            <?php foreach ($colourOptions as $colourOption): ?>
-                                <button class="product-swatch" type="button" data-colour="<?= htmlspecialchars($colourOption, ENT_QUOTES, 'UTF-8') ?>" aria-label="<?= htmlspecialchars($colourOption, ENT_QUOTES, 'UTF-8') ?>" aria-pressed="<?= $product['colour'] === $colourOption ? 'true' : 'false' ?>" style="background-color: <?= htmlspecialchars($colourPalette[$colourOption] ?? '#b8a78e', ENT_QUOTES, 'UTF-8') ?>"></button>
-                            <?php endforeach; ?>
-                        </div>
-                    </fieldset>
+                    <form class="product-info__form" id="product-cart-form" action="cart-action.php" method="post">
+                        <input type="hidden" name="action" value="add">
+                        <input type="hidden" name="product_id" value="<?= (int) $productId ?>">
+                        <input type="hidden" name="colour" id="product-colour" value="<?= htmlspecialchars($product['colour'], ENT_QUOTES, 'UTF-8') ?>">
+                        <input type="hidden" name="size" id="product-size" value="">
+                        <input type="hidden" name="quantity" id="product-quantity" value="1">
 
-                    <fieldset class="product-option">
-                        <legend class="sr-only">Size</legend>
-                        <div class="product-option__heading">
-                            <span aria-hidden="true">Size</span>
-                            <a href="#size-guide">Size guide</a>
-                        </div>
-                        <div class="product-size-grid" aria-label="Size options">
-                            <button type="button" data-size="S" aria-pressed="false">S</button>
-                            <button type="button" data-size="M" aria-pressed="false">M</button>
-                            <button type="button" data-size="L" aria-pressed="false">L</button>
-                            <button type="button" data-size="XL" aria-pressed="false">XL</button>
-                        </div>
-                    </fieldset>
+                        <fieldset class="product-option">
+                            <legend>Colour: <strong id="selected-colour"><?= htmlspecialchars($product['colour'], ENT_QUOTES, 'UTF-8') ?></strong></legend>
+                            <div class="product-swatches" aria-label="Colour options">
+                                <?php foreach ($colourOptions as $colourOption): ?>
+                                    <button class="product-swatch" type="button" data-colour="<?= htmlspecialchars($colourOption, ENT_QUOTES, 'UTF-8') ?>" aria-label="<?= htmlspecialchars($colourOption, ENT_QUOTES, 'UTF-8') ?>" aria-pressed="<?= $product['colour'] === $colourOption ? 'true' : 'false' ?>" style="background-color: <?= htmlspecialchars($colourPalette[$colourOption] ?? '#b8a78e', ENT_QUOTES, 'UTF-8') ?>"></button>
+                                <?php endforeach; ?>
+                            </div>
+                        </fieldset>
 
-                    <div class="product-quantity" aria-label="Quantity selector">
-                        <span class="product-quantity__label">Quantity</span>
-                        <div class="product-quantity__controls">
-                            <button type="button" data-quantity-action="decrease" aria-label="Decrease quantity">&minus;</button>
-                            <output id="product-quantity-value" class="product-quantity__value" aria-live="polite">1</output>
-                            <button type="button" data-quantity-action="increase" aria-label="Increase quantity">+</button>
-                        </div>
-                    </div>
+                        <fieldset class="product-option">
+                            <legend class="sr-only">Size</legend>
+                            <div class="product-option__heading">
+                                <span aria-hidden="true">Size</span>
+                                <a href="#size-guide">Size guide</a>
+                            </div>
+                            <div class="product-size-grid" aria-label="Size options">
+                                <button type="button" data-size="S" aria-pressed="false">S</button>
+                                <button type="button" data-size="M" aria-pressed="false">M</button>
+                                <button type="button" data-size="L" aria-pressed="false">L</button>
+                                <button type="button" data-size="XL" aria-pressed="false">XL</button>
+                            </div>
+                        </fieldset>
 
-                    <button class="button button--dark product-info__add" id="add-to-cart" type="button">Add to Cart <span aria-hidden="true">&rarr;</span></button>
-                    <p class="product-info__note" id="product-feedback" role="status" aria-live="polite"></p>
+                        <div class="product-quantity" aria-label="Quantity selector">
+                            <span class="product-quantity__label">Quantity</span>
+                            <div class="product-quantity__controls">
+                                <button type="button" data-quantity-action="decrease" aria-label="Decrease quantity">&minus;</button>
+                                <output id="product-quantity-value" class="product-quantity__value" aria-live="polite">1</output>
+                                <button type="button" data-quantity-action="increase" aria-label="Increase quantity">+</button>
+                            </div>
+                        </div>
+
+                        <button class="button button--dark product-info__add" id="add-to-cart" type="submit">Add to Cart <span aria-hidden="true">&rarr;</span></button>
+                        <p class="product-info__note" id="product-feedback" role="status" aria-live="polite"></p>
+                    </form>
 
                     <dl class="product-highlights">
                         <div><dt>Fit</dt><dd>Relaxed</dd></div>
