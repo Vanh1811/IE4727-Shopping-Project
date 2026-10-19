@@ -3,47 +3,41 @@ $pageTitle = 'Checkout';
 $pageDescription = 'Complete your F2B SHOP checkout details.';
 $pageStylesheet = 'css/checkout.css';
 
-// Static demonstration data for the frontend-only checkout page.
-$checkoutItems = [
-    [
-        'name' => 'Studio Overshirt',
-        'size' => 'M',
-        'colour' => 'Black',
-        'price' => 68.00,
-        'quantity' => 2,
-        'image' => 'images/products/studio-overshirt.svg',
-        'alt' => 'Studio Overshirt product image',
-    ],
-    [
-        'name' => 'Form Tee',
-        'size' => 'L',
-        'colour' => 'White',
-        'price' => 32.00,
-        'quantity' => 1,
-        'image' => 'images/products/form-tee.svg',
-        'alt' => 'Form Tee product image',
-    ],
-    [
-        'name' => 'Arc Denim',
-        'size' => 'M',
-        'colour' => 'Navy',
-        'price' => 82.00,
-        'quantity' => 1,
-        'image' => 'images/products/arc-denim.svg',
-        'alt' => 'Arc Denim product image',
-    ],
-];
+require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/cart.php';
+require_once __DIR__ . '/includes/order.php';
 
-$checkoutSubtotal = 0;
-$checkoutDiscountRate = 0.10;
-$checkoutDeliveryFee = 5.00;
+$checkoutItems = f2bCartLoadItems($db);
 
-foreach ($checkoutItems as $item) {
-    $checkoutSubtotal += $item['price'] * $item['quantity'];
+if (!$checkoutItems) {
+    f2bCartSetFlash('Your cart is empty. Add an item before checking out.', 'error');
+    header('Location: cart.php', true, 303);
+    exit;
 }
 
-$checkoutDiscount = $checkoutSubtotal * $checkoutDiscountRate;
-$checkoutTotal = $checkoutSubtotal - $checkoutDiscount + $checkoutDeliveryFee;
+$checkoutTotals = f2bCartCalculateTotals($checkoutItems);
+$checkoutValues = array(
+    'full_name' => '',
+    'email' => '',
+    'phone' => '',
+    'postal_code' => '',
+    'delivery_address' => '',
+    'special_instructions' => '',
+);
+$checkoutErrors = array();
+$checkoutFeedback = '';
+
+if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $validation = f2bOrderValidateCheckout($_POST);
+    $checkoutValues = $validation['values'];
+    $checkoutErrors = $validation['errors'];
+
+    if (!$checkoutErrors) {
+        $checkoutFeedback = 'Your details are valid and ready to be submitted.';
+    } else {
+        $checkoutFeedback = 'Please correct the highlighted fields before continuing.';
+    }
+}
 
 include __DIR__ . '/includes/header.php';
 ?>
@@ -72,36 +66,42 @@ include __DIR__ . '/includes/header.php';
                     <p>We will use these details for delivery updates.</p>
                 </div>
 
-                <form class="checkout-form" id="checkout-form" action="checkout.php" method="post">
+                <form class="checkout-form<?= $checkoutErrors ? ' was-validated' : '' ?>" id="checkout-form" action="checkout.php" method="post" novalidate>
                     <div class="checkout-form__fields">
                         <div class="form-field">
                             <label for="full-name">Full Name <span class="required-marker" aria-hidden="true">*</span></label>
-                            <input id="full-name" name="full_name" type="text" autocomplete="name" placeholder="e.g. Alex Tan" required>
+                            <input id="full-name" name="full_name" type="text" autocomplete="name" placeholder="e.g. Alex Tan" value="<?= htmlspecialchars($checkoutValues['full_name'], ENT_QUOTES, 'UTF-8') ?>" maxlength="160" required aria-invalid="<?= isset($checkoutErrors['full_name']) ? 'true' : 'false' ?>">
+                            <?php if (isset($checkoutErrors['full_name'])): ?><p class="checkout-form__field-error"><?= htmlspecialchars($checkoutErrors['full_name'], ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?>
                         </div>
 
                         <div class="form-field">
                             <label for="email-address">Email Address <span class="required-marker" aria-hidden="true">*</span></label>
-                            <input id="email-address" name="email" type="email" autocomplete="email" placeholder="e.g. alex@example.com" required>
+                            <input id="email-address" name="email" type="email" autocomplete="email" placeholder="e.g. alex@example.com" value="<?= htmlspecialchars($checkoutValues['email'], ENT_QUOTES, 'UTF-8') ?>" maxlength="254" required aria-invalid="<?= isset($checkoutErrors['email']) ? 'true' : 'false' ?>">
+                            <?php if (isset($checkoutErrors['email'])): ?><p class="checkout-form__field-error"><?= htmlspecialchars($checkoutErrors['email'], ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?>
                         </div>
 
                         <div class="form-field">
                             <label for="phone-number">Phone Number <span class="required-marker" aria-hidden="true">*</span></label>
-                            <input id="phone-number" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="e.g. +65 9123 4567" pattern="[0-9+() .-]{7,20}" title="Enter a valid phone number." required>
+                            <input id="phone-number" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="e.g. +65 9123 4567" value="<?= htmlspecialchars($checkoutValues['phone'], ENT_QUOTES, 'UTF-8') ?>" maxlength="30" required aria-invalid="<?= isset($checkoutErrors['phone']) ? 'true' : 'false' ?>">
+                            <?php if (isset($checkoutErrors['phone'])): ?><p class="checkout-form__field-error"><?= htmlspecialchars($checkoutErrors['phone'], ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?>
                         </div>
 
                         <div class="form-field">
                             <label for="postal-code">Postal Code <span class="required-marker" aria-hidden="true">*</span></label>
-                            <input id="postal-code" name="postal_code" type="text" autocomplete="postal-code" inputmode="numeric" placeholder="e.g. 238801" pattern="[0-9A-Za-z -]{3,10}" title="Enter a valid postal code." required>
+                            <input id="postal-code" name="postal_code" type="text" autocomplete="postal-code" inputmode="numeric" placeholder="e.g. 238801" value="<?= htmlspecialchars($checkoutValues['postal_code'], ENT_QUOTES, 'UTF-8') ?>" maxlength="20" required aria-invalid="<?= isset($checkoutErrors['postal_code']) ? 'true' : 'false' ?>">
+                            <?php if (isset($checkoutErrors['postal_code'])): ?><p class="checkout-form__field-error"><?= htmlspecialchars($checkoutErrors['postal_code'], ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?>
                         </div>
 
                         <div class="form-field form-field--full">
                             <label for="delivery-address">Delivery Address <span class="required-marker" aria-hidden="true">*</span></label>
-                            <textarea id="delivery-address" name="delivery_address" autocomplete="street-address" rows="3" placeholder="Block, street name, unit number" required></textarea>
+                            <textarea id="delivery-address" name="delivery_address" autocomplete="street-address" rows="3" maxlength="500" placeholder="Block, street name, unit number" required aria-invalid="<?= isset($checkoutErrors['delivery_address']) ? 'true' : 'false' ?>"><?= htmlspecialchars($checkoutValues['delivery_address'], ENT_QUOTES, 'UTF-8') ?></textarea>
+                            <?php if (isset($checkoutErrors['delivery_address'])): ?><p class="checkout-form__field-error"><?= htmlspecialchars($checkoutErrors['delivery_address'], ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?>
                         </div>
 
                         <div class="form-field form-field--full">
                             <label for="special-instructions">Special Instructions <span class="optional-note">(optional)</span></label>
-                            <textarea id="special-instructions" name="special_instructions" rows="3" placeholder="Add delivery notes, if needed"></textarea>
+                            <textarea id="special-instructions" name="special_instructions" rows="3" maxlength="1000" placeholder="Add delivery notes, if needed" aria-invalid="<?= isset($checkoutErrors['special_instructions']) ? 'true' : 'false' ?>"><?= htmlspecialchars($checkoutValues['special_instructions'], ENT_QUOTES, 'UTF-8') ?></textarea>
+                            <?php if (isset($checkoutErrors['special_instructions'])): ?><p class="checkout-form__field-error"><?= htmlspecialchars($checkoutErrors['special_instructions'], ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?>
                         </div>
                     </div>
 
@@ -109,8 +109,10 @@ include __DIR__ . '/includes/header.php';
                     <button class="button button--dark button--wide checkout-submit" type="submit">
                         PLACE ORDER <span aria-hidden="true">&rarr;</span>
                     </button>
-                    <p class="checkout-form__feedback" id="checkout-demo-message" role="status" aria-live="polite" hidden></p>
-                    <a class="checkout-demo-link" href="confirmation.php">VIEW DEMO CONFIRMATION <span aria-hidden="true">&rarr;</span></a>
+                    <?php if ($checkoutFeedback !== ''): ?>
+                        <p class="checkout-form__feedback" id="checkout-feedback" role="status" aria-live="polite"><?= htmlspecialchars($checkoutFeedback, ENT_QUOTES, 'UTF-8') ?></p>
+                    <?php endif; ?>
+                    <a class="checkout-demo-link" href="cart.php">RETURN TO CART <span aria-hidden="true">&larr;</span></a>
                 </form>
             </section>
 
@@ -122,7 +124,7 @@ include __DIR__ . '/includes/header.php';
                     <?php foreach ($checkoutItems as $item): ?>
                         <article class="order-item">
                             <div class="order-item__image">
-                                <img src="<?= htmlspecialchars($item['image'], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($item['alt'], ENT_QUOTES, 'UTF-8') ?>">
+                                <img src="<?= htmlspecialchars($item['image'], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($item['name'], ENT_QUOTES, 'UTF-8') ?> product image">
                             </div>
                             <div class="order-item__details">
                                 <div class="order-item__heading">
@@ -142,23 +144,23 @@ include __DIR__ . '/includes/header.php';
                 <div class="order-summary__totals">
                     <div class="order-summary__row">
                         <span>Subtotal</span>
-                        <strong>$<?= number_format($checkoutSubtotal, 2) ?></strong>
+                        <strong>$<?= number_format($checkoutTotals['subtotal'], 2) ?></strong>
                     </div>
                     <div class="order-summary__row">
-                        <span>Discount (-<?= number_format($checkoutDiscountRate * 100, 0) ?>%)</span>
-                        <strong>-$<?= number_format($checkoutDiscount, 2) ?></strong>
+                        <span>Discount (-<?= number_format($checkoutTotals['discount_rate'] * 100, 0) ?>%)</span>
+                        <strong>-$<?= number_format($checkoutTotals['discount'], 2) ?></strong>
                     </div>
                     <div class="order-summary__row">
                         <span>Delivery Fee</span>
-                        <strong>$<?= number_format($checkoutDeliveryFee, 2) ?></strong>
+                        <strong>$<?= number_format($checkoutTotals['delivery'], 2) ?></strong>
                     </div>
                     <div class="order-summary__total">
                         <span>Total</span>
-                        <strong>$<?= number_format($checkoutTotal, 2) ?></strong>
+                        <strong>$<?= number_format($checkoutTotals['total'], 2) ?></strong>
                     </div>
                 </div>
 
-                <p class="order-summary__note">This is a frontend demonstration. No order or payment will be processed.</p>
+                <p class="order-summary__note">Totals are calculated from your current cart and verified again when the order is placed.</p>
             </aside>
         </div>
     </div>
@@ -169,26 +171,14 @@ include __DIR__ . '/includes/header.php';
         'use strict';
 
         const form = document.querySelector('#checkout-form');
-        const feedback = document.querySelector('#checkout-demo-message');
 
-        if (!form || !feedback) {
+        if (!form) {
             return;
         }
 
-        const showFeedback = (message) => {
-            form.classList.add('was-validated');
-            feedback.hidden = false;
-            feedback.textContent = message;
-        };
-
         form.addEventListener('invalid', () => {
-            showFeedback('Please complete the highlighted fields before continuing.');
+            form.classList.add('was-validated');
         }, true);
-
-        form.addEventListener('submit', (event) => {
-            event.preventDefault();
-            showFeedback('Demo only — no order has been placed or saved.');
-        });
     })();
 </script>
 
