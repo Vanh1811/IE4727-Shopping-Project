@@ -42,6 +42,104 @@
     font-size: 1.05rem;
 }
 
+.orders-feedback {
+    margin: 0 0 var(--space-4);
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    color: var(--color-ink);
+    font-size: 0.82rem;
+}
+
+.orders-feedback--error {
+    border-color: #e4b8b8;
+    background: #fff4f2;
+    color: #8d2e2e;
+}
+
+.orders-feedback--success {
+    border-color: #b8d4c4;
+    background: #f0f8f2;
+    color: var(--color-success);
+}
+
+.orders-access-card {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(20rem, 1.1fr);
+    align-items: end;
+    gap: var(--space-5);
+    margin-bottom: var(--space-5);
+    padding: var(--space-5);
+    background: var(--color-ink);
+    border-radius: var(--radius-lg);
+    color: var(--color-background);
+}
+
+.orders-access-card .eyebrow {
+    color: #bcbcb8;
+}
+
+.orders-access-card h2 {
+    margin: 0;
+    color: var(--color-background);
+    font-size: 1.55rem;
+    letter-spacing: -0.05em;
+}
+
+.orders-access-card > div > p:last-child {
+    max-width: 30rem;
+    margin: 0.55rem 0 0;
+    color: #bcbcb8;
+    font-size: 0.78rem;
+    line-height: 1.5;
+}
+
+.orders-access-form {
+    display: grid;
+    gap: var(--space-3);
+}
+
+.orders-access-form__fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+}
+
+.orders-access-form__fields > div {
+    display: grid;
+    gap: 0.4rem;
+}
+
+.orders-access-form label {
+    color: #bcbcb8;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.orders-access-form input {
+    width: 100%;
+    padding: 0.72rem 0.8rem;
+    border: 1px solid #5b5b57;
+    border-radius: var(--radius-sm);
+    color: var(--color-background);
+    background: #292926;
+    font: inherit;
+}
+
+.orders-access-form input:focus {
+    border-color: var(--color-background);
+    outline: 0;
+    box-shadow: 0 0 0 3px rgba(250, 249, 246, 0.2);
+}
+
+.orders-access-form .button {
+    justify-self: start;
+    border-color: var(--color-background);
+}
+
 .orders-table-card {
     padding: var(--space-5);
     background: var(--color-surface);
@@ -158,6 +256,11 @@
 .status-badge--review {
     color: #7b422f;
     background: var(--color-accent-soft);
+}
+
+.status-badge--changes {
+    color: #8b4d1c;
+    background: #ffe8d7;
 }
 
 .status-badge--confirmed {
@@ -316,10 +419,29 @@
     font-size: 1.4rem;
 }
 
+.orders-empty-state p:not(.eyebrow) {
+    max-width: 30rem;
+    margin: var(--space-2) auto 0;
+    color: var(--color-muted);
+    font-size: 0.84rem;
+    line-height: 1.5;
+}
+
 .orders-empty-state .button {
     margin-top: var(--space-4);
 }
 
 .orders-page__footer-action {
     margin-top: var(--space-5);
+}
+
+@media (max-width: 767px) {
+    .orders-access-card {
+        grid-template-columns: 1fr;
+        align-items: start;
+    }
+
+    .orders-access-form__fields {
+        grid-template-columns: 1fr;
+    }
 }
