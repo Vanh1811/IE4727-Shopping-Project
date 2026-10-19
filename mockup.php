@@ -156,6 +156,7 @@ if ($mockupId !== null && is_object($db) && method_exists($db, 'prepare')) {
 $reviewCsrfToken = $mockup !== null && $mockup['status'] === 'READY_FOR_REVIEW'
     ? f2bCsrfToken('mockup-review')
     : null;
+$flash = f2bOrderConsumeFlash();
 
 include __DIR__ . '/includes/header.php';
 ?>
@@ -210,6 +211,12 @@ include __DIR__ . '/includes/header.php';
                         <h2 id="mockup-details-title">Review the details</h2>
                         <p>This preview is connected to the selected order item and its current design revision.</p>
                     </div>
+
+                    <?php if ($flash): ?>
+                        <p class="review-feedback <?= $flash['type'] === 'error' ? 'is-error' : 'is-success' ?>" id="review-feedback" role="<?= $flash['type'] === 'error' ? 'alert' : 'status' ?>" tabindex="-1"><?= htmlspecialchars($flash['message'], ENT_QUOTES, 'UTF-8') ?></p>
+                    <?php else: ?>
+                        <p class="review-feedback" id="review-feedback" role="status" tabindex="-1" hidden></p>
+                    <?php endif; ?>
 
                     <dl class="mockup-order-meta">
                         <div>

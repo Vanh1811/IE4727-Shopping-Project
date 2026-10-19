@@ -12,13 +12,17 @@
     const changeRequest = form.querySelector('#change-request');
     const decisionError = form.querySelector('#decision-error');
     const changeRequestError = form.querySelector('#change-request-error');
-    const feedback = form.querySelector('#review-feedback');
+    const feedback = document.querySelector('#review-feedback');
 
-    if (!changeRequestField || !changeRequest || !decisionError || !changeRequestError || !feedback) {
+    if (!changeRequestField || !changeRequest || !decisionError || !changeRequestError) {
         return;
     }
 
     const clearFeedback = () => {
+        if (!feedback) {
+            return;
+        }
+
         feedback.hidden = true;
         feedback.textContent = '';
         feedback.classList.remove('is-success', 'is-error');
@@ -42,7 +46,6 @@
         changeRequest.disabled = !isRequestingChanges;
         changeRequest.required = isRequestingChanges;
         clearDecisionError();
-        clearFeedback();
 
         if (!isRequestingChanges) {
             clearChangeRequestError();
@@ -50,7 +53,10 @@
     };
 
     decisionInputs.forEach((input) => {
-        input.addEventListener('change', updateChangeRequestVisibility);
+        input.addEventListener('change', () => {
+            clearFeedback();
+            updateChangeRequestVisibility();
+        });
     });
 
     changeRequest.addEventListener('input', () => {
@@ -60,12 +66,12 @@
     });
 
     form.addEventListener('submit', (event) => {
-        event.preventDefault();
         clearFeedback();
 
         const selectedDecision = form.querySelector('input[name="review_decision"]:checked');
 
         if (!selectedDecision) {
+            event.preventDefault();
             decisionError.hidden = false;
             decisionInputs[0]?.focus();
             return;
@@ -74,6 +80,7 @@
         clearDecisionError();
 
         if (selectedDecision.value === 'request_changes' && changeRequest.value.trim() === '') {
+            event.preventDefault();
             changeRequest.setCustomValidity('Please describe the changes you would like to request.');
             changeRequest.setAttribute('aria-invalid', 'true');
             changeRequestError.hidden = false;
@@ -82,12 +89,7 @@
         }
 
         clearChangeRequestError();
-        feedback.classList.add('is-success');
-        feedback.hidden = false;
-        feedback.textContent = selectedDecision.value === 'approve'
-            ? 'Demo: Your design approval has been selected. The review will be saved when backend functionality is implemented.'
-            : 'Demo: Your change request has been entered. It will be saved when backend functionality is implemented.';
-        feedback.focus({ preventScroll: true });
+        // Valid submissions intentionally continue to mockup-action.php.
     });
 
     updateChangeRequestVisibility();
