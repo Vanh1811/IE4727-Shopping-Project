@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/order_access.php';
 require_once __DIR__ . '/includes/cart.php';
 
 $requestMethod = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET';
@@ -8,7 +9,12 @@ $action = isset($_POST['action']) && is_scalar($_POST['action']) ? trim((string)
 $success = false;
 $message = 'That cart action could not be completed.';
 
-if ($requestMethod === 'POST' && $action === 'add') {
+$csrfValid = $requestMethod === 'POST'
+    && f2bCsrfValidate(isset($_POST['csrf_token']) ? $_POST['csrf_token'] : null, 'cart');
+
+if ($requestMethod === 'POST' && !$csrfValid) {
+    $message = 'Your cart session expired. Refresh the page and try again.';
+} elseif ($requestMethod === 'POST' && $action === 'add') {
     $success = f2bCartAdd(
         $db,
         isset($_POST['product_id']) ? $_POST['product_id'] : null,

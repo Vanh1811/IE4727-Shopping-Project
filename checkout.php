@@ -93,43 +93,43 @@ include __DIR__ . '/includes/header.php';
                     <p>We will use these details for delivery updates.</p>
                 </div>
 
-                <form class="checkout-form<?= $checkoutErrors ? ' was-validated' : '' ?>" id="checkout-form" action="checkout.php" method="post" novalidate>
+                <form class="checkout-form<?= $checkoutErrors ? ' was-validated' : '' ?>" id="checkout-form" action="checkout.php" method="post">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars((string) $checkoutCsrfToken, ENT_QUOTES, 'UTF-8') ?>">
                     <div class="checkout-form__fields">
                         <div class="form-field">
                             <label for="full-name">Full Name <span class="required-marker" aria-hidden="true">*</span></label>
-                            <input id="full-name" name="full_name" type="text" autocomplete="name" placeholder="e.g. Alex Tan" value="<?= htmlspecialchars($checkoutValues['full_name'], ENT_QUOTES, 'UTF-8') ?>" maxlength="160" required aria-invalid="<?= isset($checkoutErrors['full_name']) ? 'true' : 'false' ?>">
-                            <?php if (isset($checkoutErrors['full_name'])): ?><p class="checkout-form__field-error"><?= htmlspecialchars($checkoutErrors['full_name'], ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?>
+                            <input id="full-name" name="full_name" type="text" autocomplete="name" placeholder="e.g. Alex Tan" value="<?= htmlspecialchars($checkoutValues['full_name'], ENT_QUOTES, 'UTF-8') ?>" minlength="2" maxlength="160" pattern=".*\S.*" required aria-describedby="full-name-error" aria-invalid="<?= isset($checkoutErrors['full_name']) ? 'true' : 'false' ?>">
+                            <p class="checkout-form__field-error" id="full-name-error"<?= isset($checkoutErrors['full_name']) ? '' : ' hidden' ?>><?= isset($checkoutErrors['full_name']) ? htmlspecialchars($checkoutErrors['full_name'], ENT_QUOTES, 'UTF-8') : '' ?></p>
                         </div>
 
                         <div class="form-field">
                             <label for="email-address">Email Address <span class="required-marker" aria-hidden="true">*</span></label>
-                            <input id="email-address" name="email" type="email" autocomplete="email" placeholder="e.g. alex@example.com" value="<?= htmlspecialchars($checkoutValues['email'], ENT_QUOTES, 'UTF-8') ?>" maxlength="254" required aria-invalid="<?= isset($checkoutErrors['email']) ? 'true' : 'false' ?>">
-                            <?php if (isset($checkoutErrors['email'])): ?><p class="checkout-form__field-error"><?= htmlspecialchars($checkoutErrors['email'], ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?>
+                            <input id="email-address" name="email" type="email" autocomplete="email" placeholder="e.g. alex@example.com" value="<?= htmlspecialchars($checkoutValues['email'], ENT_QUOTES, 'UTF-8') ?>" maxlength="254" required aria-describedby="email-address-error" aria-invalid="<?= isset($checkoutErrors['email']) ? 'true' : 'false' ?>">
+                            <p class="checkout-form__field-error" id="email-address-error"<?= isset($checkoutErrors['email']) ? '' : ' hidden' ?>><?= isset($checkoutErrors['email']) ? htmlspecialchars($checkoutErrors['email'], ENT_QUOTES, 'UTF-8') : '' ?></p>
                         </div>
 
                         <div class="form-field">
                             <label for="phone-number">Phone Number <span class="required-marker" aria-hidden="true">*</span></label>
-                            <input id="phone-number" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="e.g. +65 9123 4567" value="<?= htmlspecialchars($checkoutValues['phone'], ENT_QUOTES, 'UTF-8') ?>" maxlength="30" required aria-invalid="<?= isset($checkoutErrors['phone']) ? 'true' : 'false' ?>">
-                            <?php if (isset($checkoutErrors['phone'])): ?><p class="checkout-form__field-error"><?= htmlspecialchars($checkoutErrors['phone'], ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?>
+                            <input id="phone-number" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="e.g. +65 9123 4567" value="<?= htmlspecialchars($checkoutValues['phone'], ENT_QUOTES, 'UTF-8') ?>" minlength="7" maxlength="30" pattern="[0-9+(). -]{7,30}" required aria-describedby="phone-number-error" aria-invalid="<?= isset($checkoutErrors['phone']) ? 'true' : 'false' ?>">
+                            <p class="checkout-form__field-error" id="phone-number-error"<?= isset($checkoutErrors['phone']) ? '' : ' hidden' ?>><?= isset($checkoutErrors['phone']) ? htmlspecialchars($checkoutErrors['phone'], ENT_QUOTES, 'UTF-8') : '' ?></p>
                         </div>
 
                         <div class="form-field">
                             <label for="postal-code">Postal Code <span class="required-marker" aria-hidden="true">*</span></label>
-                            <input id="postal-code" name="postal_code" type="text" autocomplete="postal-code" inputmode="numeric" placeholder="e.g. 238801" value="<?= htmlspecialchars($checkoutValues['postal_code'], ENT_QUOTES, 'UTF-8') ?>" maxlength="20" required aria-invalid="<?= isset($checkoutErrors['postal_code']) ? 'true' : 'false' ?>">
-                            <?php if (isset($checkoutErrors['postal_code'])): ?><p class="checkout-form__field-error"><?= htmlspecialchars($checkoutErrors['postal_code'], ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?>
+                            <input id="postal-code" name="postal_code" type="text" autocomplete="postal-code" inputmode="numeric" placeholder="e.g. 238801" value="<?= htmlspecialchars($checkoutValues['postal_code'], ENT_QUOTES, 'UTF-8') ?>" minlength="3" maxlength="20" pattern="[0-9A-Za-z][0-9A-Za-z -]{2,19}" required aria-describedby="postal-code-error" aria-invalid="<?= isset($checkoutErrors['postal_code']) ? 'true' : 'false' ?>">
+                            <p class="checkout-form__field-error" id="postal-code-error"<?= isset($checkoutErrors['postal_code']) ? '' : ' hidden' ?>><?= isset($checkoutErrors['postal_code']) ? htmlspecialchars($checkoutErrors['postal_code'], ENT_QUOTES, 'UTF-8') : '' ?></p>
                         </div>
 
                         <div class="form-field form-field--full">
                             <label for="delivery-address">Delivery Address <span class="required-marker" aria-hidden="true">*</span></label>
-                            <textarea id="delivery-address" name="delivery_address" autocomplete="street-address" rows="3" maxlength="500" placeholder="Block, street name, unit number" required aria-invalid="<?= isset($checkoutErrors['delivery_address']) ? 'true' : 'false' ?>"><?= htmlspecialchars($checkoutValues['delivery_address'], ENT_QUOTES, 'UTF-8') ?></textarea>
-                            <?php if (isset($checkoutErrors['delivery_address'])): ?><p class="checkout-form__field-error"><?= htmlspecialchars($checkoutErrors['delivery_address'], ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?>
+                            <textarea id="delivery-address" name="delivery_address" autocomplete="street-address" rows="3" maxlength="500" placeholder="Block, street name, unit number" pattern=".*\S.*" required aria-describedby="delivery-address-error" aria-invalid="<?= isset($checkoutErrors['delivery_address']) ? 'true' : 'false' ?>"><?= htmlspecialchars($checkoutValues['delivery_address'], ENT_QUOTES, 'UTF-8') ?></textarea>
+                            <p class="checkout-form__field-error" id="delivery-address-error"<?= isset($checkoutErrors['delivery_address']) ? '' : ' hidden' ?>><?= isset($checkoutErrors['delivery_address']) ? htmlspecialchars($checkoutErrors['delivery_address'], ENT_QUOTES, 'UTF-8') : '' ?></p>
                         </div>
 
                         <div class="form-field form-field--full">
                             <label for="special-instructions">Special Instructions <span class="optional-note">(optional)</span></label>
-                            <textarea id="special-instructions" name="special_instructions" rows="3" maxlength="1000" placeholder="Add delivery notes, if needed" aria-invalid="<?= isset($checkoutErrors['special_instructions']) ? 'true' : 'false' ?>"><?= htmlspecialchars($checkoutValues['special_instructions'], ENT_QUOTES, 'UTF-8') ?></textarea>
-                            <?php if (isset($checkoutErrors['special_instructions'])): ?><p class="checkout-form__field-error"><?= htmlspecialchars($checkoutErrors['special_instructions'], ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?>
+                            <textarea id="special-instructions" name="special_instructions" rows="3" maxlength="1000" placeholder="Add delivery notes, if needed" aria-describedby="special-instructions-error" aria-invalid="<?= isset($checkoutErrors['special_instructions']) ? 'true' : 'false' ?>"><?= htmlspecialchars($checkoutValues['special_instructions'], ENT_QUOTES, 'UTF-8') ?></textarea>
+                            <p class="checkout-form__field-error" id="special-instructions-error"<?= isset($checkoutErrors['special_instructions']) ? '' : ' hidden' ?>><?= isset($checkoutErrors['special_instructions']) ? htmlspecialchars($checkoutErrors['special_instructions'], ENT_QUOTES, 'UTF-8') : '' ?></p>
                         </div>
                     </div>
 
@@ -204,9 +204,18 @@ include __DIR__ . '/includes/header.php';
             return;
         }
 
-        form.addEventListener('invalid', () => {
+        form.addEventListener('invalid', (event) => {
             form.classList.add('was-validated');
+            event.target.setAttribute('aria-invalid', 'true');
         }, true);
+
+        form.querySelectorAll('input, textarea').forEach((field) => {
+            field.addEventListener('input', () => {
+                if (field.checkValidity()) {
+                    field.setAttribute('aria-invalid', 'false');
+                }
+            });
+        });
     })();
 </script>
 

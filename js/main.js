@@ -43,81 +43,84 @@
         const quantityInput = productPage.querySelector('#product-quantity');
         const feedback = productPage.querySelector('#product-feedback');
         const addToCart = productPage.querySelector('#add-to-cart');
+        const cartForm = productPage.querySelector('#product-cart-form');
+        const parsedMaxQuantity = Number.parseInt(cartForm?.dataset.maxQuantity || '99', 10);
+        const maxQuantity = Number.isInteger(parsedMaxQuantity) ? parsedMaxQuantity : 99;
+        const productName = cartForm?.dataset.productName || 'Product';
         let quantity = 1;
 
-    thumbnails.forEach((thumbnail) => {
-        thumbnail.addEventListener('click', () => {
-            if (!mainImage) {
+        thumbnails.forEach((thumbnail) => {
+            thumbnail.addEventListener('click', () => {
+                if (!mainImage) {
+                    return;
+                }
+
+                mainImage.src = thumbnail.dataset.imageSrc;
+                mainImage.alt = thumbnail.dataset.imageAlt;
+
+                thumbnails.forEach((item) => {
+                    const isSelected = item === thumbnail;
+                    item.classList.toggle('is-active', isSelected);
+                    item.setAttribute('aria-pressed', String(isSelected));
+                });
+            });
+        });
+
+        colourButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                colourButtons.forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+
+                if (selectedColour) {
+                    selectedColour.textContent = button.dataset.colour;
+                }
+
+                if (colourInput) {
+                    colourInput.value = button.dataset.colour;
+                }
+            });
+        });
+
+        sizeButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                sizeButtons.forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+
+                if (sizeInput) {
+                    sizeInput.value = button.dataset.size;
+                }
+            });
+        });
+
+        productPage.querySelectorAll('[data-quantity-action]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const direction = button.dataset.quantityAction === 'increase' ? 1 : -1;
+                quantity = Math.min(maxQuantity, Math.max(1, quantity + direction));
+
+                if (quantityValue) {
+                    quantityValue.value = quantity;
+                    quantityValue.textContent = String(quantity);
+                }
+
+                if (quantityInput) {
+                    quantityInput.value = String(quantity);
+                }
+            });
+        });
+
+        addToCart?.addEventListener('click', (event) => {
+            const activeColour = productPage.querySelector('.product-swatch[aria-pressed="true"]')?.dataset.colour;
+            const activeSize = productPage.querySelector('.product-size-grid button[aria-pressed="true"]')?.dataset.size;
+
+            if (!activeColour || !activeSize) {
+                event.preventDefault();
+                if (feedback) {
+                    feedback.textContent = 'Choose a colour and size before adding this item.';
+                }
                 return;
             }
 
-            mainImage.src = thumbnail.dataset.imageSrc;
-            mainImage.alt = thumbnail.dataset.imageAlt;
-
-            thumbnails.forEach((item) => {
-                const isSelected = item === thumbnail;
-                item.classList.toggle('is-active', isSelected);
-                item.setAttribute('aria-pressed', String(isSelected));
-            });
-        });
-    });
-
-    colourButtons.forEach((button) => {
-        button.addEventListener('click', () => {
-            colourButtons.forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
-
-            if (selectedColour) {
-                selectedColour.textContent = button.dataset.colour;
-            }
-
-            if (colourInput) {
-                colourInput.value = button.dataset.colour;
-            }
-        });
-    });
-
-    sizeButtons.forEach((button) => {
-        button.addEventListener('click', () => {
-            sizeButtons.forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
-
-            if (sizeInput) {
-                sizeInput.value = button.dataset.size;
-            }
-        });
-    });
-
-    productPage.querySelectorAll('[data-quantity-action]').forEach((button) => {
-        button.addEventListener('click', () => {
-            const direction = button.dataset.quantityAction === 'increase' ? 1 : -1;
-            quantity = Math.max(1, quantity + direction);
-
-            if (quantityValue) {
-                quantityValue.value = quantity;
-                quantityValue.textContent = String(quantity);
-            }
-
-            if (quantityInput) {
-                quantityInput.value = String(quantity);
-            }
-        });
-    });
-
-    addToCart?.addEventListener('click', (event) => {
-        const activeColour = productPage.querySelector('.product-swatch[aria-pressed="true"]')?.dataset.colour;
-        const activeSize = productPage.querySelector('.product-size-grid button[aria-pressed="true"]')?.dataset.size;
-
-        if (!activeColour || !activeSize) {
-            event.preventDefault();
             if (feedback) {
-                feedback.textContent = 'Choose a colour and size before adding this item.';
+                feedback.textContent = `${quantity} × ${activeColour} ${productName} (${activeSize}) is ready for your bag.`;
             }
-            return;
-        }
-
-        if (feedback) {
-            feedback.textContent = `${quantity} × ${activeColour} Studio Overshirt (${activeSize}) is ready for your bag.`;
-        }
-    });
+        });
     }
-
 })();

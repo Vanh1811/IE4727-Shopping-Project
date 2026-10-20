@@ -13,6 +13,7 @@
     const decisionError = form.querySelector('#decision-error');
     const changeRequestError = form.querySelector('#change-request-error');
     const feedback = document.querySelector('#review-feedback');
+    const submitButton = form.querySelector('button[type="submit"]');
 
     if (!changeRequestField || !changeRequest || !decisionError || !changeRequestError) {
         return;
@@ -89,6 +90,10 @@
         }
 
         clearChangeRequestError();
+        if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'SUBMITTING…';
+        }
         // Valid submissions intentionally continue to mockup-action.php.
     });
 
