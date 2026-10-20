@@ -38,6 +38,7 @@ This report is based on integrated `origin/main` at `882c3be`. PHP/MySQL and bro
 ## Final Week 7 corrections
 
 - Header session setup now runs before HTML output, preventing navbar cart-count session/header warnings.
+- Cart session setup now delegates to `f2bOrderAccessStartSession()`, so cart, checkout and guest-order access share the same `HttpOnly`, HTTPS-aware `Secure` and `SameSite=Lax` cookie settings.
 - Cart add now verifies the submitted colour against the selected product’s normalized database colour; invalid colours do not mutate the session cart.
 - Checkout address validation now trims the textarea value with `setCustomValidity()` so whitespace-only addresses are rejected client-side as well as server-side.
 

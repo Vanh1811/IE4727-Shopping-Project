@@ -46,5 +46,6 @@ Product add, cart update/remove/clear, checkout, guest order access, and mock-up
 ## Final Week 7 corrections
 
 - Session initialization now occurs in `includes/header.php` before any HTML output; `includes/navbar.php` reuses the existing cart helper without starting a second session.
+- Cart session initialization now delegates to `f2bOrderAccessStartSession()`, keeping cart, checkout and guest-order access on the same secure cookie settings.
 - `f2bCartAdd()` now compares the normalized submitted colour with the product colour loaded from MySQL and rejects unsupported colours without changing the session cart.
 - The ineffective address `<textarea pattern>` was removed. `checkout.php` now uses `trim()` and `setCustomValidity()` to reject whitespace-only addresses while retaining PHP validation and `aria-invalid` handling.
