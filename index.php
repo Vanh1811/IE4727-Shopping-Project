@@ -190,25 +190,25 @@ include __DIR__ . '/includes/header.php';
             </div>
         </div>
         <div class="style-grid">
-            <a class="style-card style-card--casual" href="shop.php">
+            <a class="style-card style-card--casual" href="shop.php?category=t-shirts">
                 <img class="style-card__image" src="images/categories/casual.svg" alt="Casual fashion style collection">
                 <span class="style-card__number">01</span>
                 <span class="style-card__name">Casual</span>
                 <span class="style-card__link">Explore <span aria-hidden="true">↗</span></span>
             </a>
-            <a class="style-card style-card--formal" href="shop.php">
+            <a class="style-card style-card--formal" href="shop.php?category=shirts">
                 <img class="style-card__image" src="images/categories/formal.svg" alt="Formal fashion style collection">
                 <span class="style-card__number">02</span>
                 <span class="style-card__name">Formal</span>
                 <span class="style-card__link">Explore <span aria-hidden="true">↗</span></span>
             </a>
-            <a class="style-card style-card--party" href="shop.php">
+            <a class="style-card style-card--party" href="shop.php?category=jackets">
                 <img class="style-card__image" src="images/categories/party.svg" alt="Party fashion style collection">
                 <span class="style-card__number">03</span>
                 <span class="style-card__name">Party</span>
                 <span class="style-card__link">Explore <span aria-hidden="true">↗</span></span>
             </a>
-            <a class="style-card style-card--gym" href="shop.php">
+            <a class="style-card style-card--gym" href="shop.php?category=hoodies">
                 <img class="style-card__image" src="images/categories/gym.svg" alt="Gym fashion style collection">
                 <span class="style-card__number">04</span>
                 <span class="style-card__name">Gym</span>

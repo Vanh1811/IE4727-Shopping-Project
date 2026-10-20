@@ -1,5 +1,6 @@
 <?php
 $currentPage = basename($_SERVER['SCRIPT_NAME'] ?? 'index.php');
+$cartItemCount = f2bCartTotalQuantity();
 
 function navLinkClass(string $page, string $currentPage): string
 {
@@ -30,14 +31,14 @@ function navLinkClass(string $page, string $currentPage): string
             <div class="nav-actions">
                 <form class="search-form" action="shop.php" method="get" role="search">
                     <label class="sr-only" for="site-search">Search products</label>
-                    <input id="site-search" name="q" type="search" placeholder="Search" autocomplete="off">
+                    <input id="site-search" name="search" type="search" placeholder="Search" autocomplete="off">
                     <button class="search-submit" type="submit" aria-label="Submit search">
                         <span aria-hidden="true">⌕</span>
                     </button>
                 </form>
-                <a class="nav-icon-link" href="cart.php" aria-label="Shopping cart">
+                <a class="nav-icon-link" href="cart.php" aria-label="Shopping cart, <?= (int) $cartItemCount ?> <?= $cartItemCount === 1 ? 'item' : 'items' ?>">
                     <span aria-hidden="true">Bag</span>
-                    <span class="cart-count">0</span>
+                    <span class="cart-count"><?= (int) $cartItemCount ?></span>
                 </a>
                 <a class="nav-account" href="orders.php">Account</a>
             </div>

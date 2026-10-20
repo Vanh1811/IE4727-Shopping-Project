@@ -4,11 +4,13 @@ $pageDescription = 'Review your F2B SHOP cart.';
 $pageStylesheet = 'css/cart.css';
 
 require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/order_access.php';
 require_once __DIR__ . '/includes/cart.php';
 
 $cartItems = f2bCartLoadItems($db);
 $cartTotals = f2bCartCalculateTotals($cartItems);
 $cartFlash = f2bCartConsumeFlash();
+$cartCsrfToken = f2bCsrfToken('cart');
 
 include __DIR__ . '/includes/header.php';
 ?>
@@ -50,6 +52,7 @@ include __DIR__ . '/includes/header.php';
                                         </div>
                                         <form class="cart-item__remove-form" action="cart-action.php" method="post">
                                             <input type="hidden" name="action" value="remove">
+                                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars((string) $cartCsrfToken, ENT_QUOTES, 'UTF-8') ?>">
                                             <input type="hidden" name="key" value="<?= htmlspecialchars($item['key'], ENT_QUOTES, 'UTF-8') ?>">
                                             <button class="cart-item__remove" type="submit" aria-label="Remove <?= htmlspecialchars($item['name'], ENT_QUOTES, 'UTF-8') ?> from cart">Remove</button>
                                         </form>
@@ -63,6 +66,7 @@ include __DIR__ . '/includes/header.php';
                                         <strong>$<?= number_format($item['price'] * $quantity, 2) ?></strong>
                                         <form class="cart-quantity" action="cart-action.php" method="post" aria-label="Quantity for <?= htmlspecialchars($item['name'], ENT_QUOTES, 'UTF-8') ?>">
                                             <input type="hidden" name="action" value="update">
+                                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars((string) $cartCsrfToken, ENT_QUOTES, 'UTF-8') ?>">
                                             <input type="hidden" name="key" value="<?= htmlspecialchars($item['key'], ENT_QUOTES, 'UTF-8') ?>">
                                             <button type="submit" name="quantity" value="<?= max(1, $quantity - 1) ?>" aria-label="Decrease <?= htmlspecialchars($item['name'], ENT_QUOTES, 'UTF-8') ?> quantity">−</button>
                                             <output aria-live="polite"><?= htmlspecialchars((string) $quantity, ENT_QUOTES, 'UTF-8') ?></output>
@@ -94,6 +98,7 @@ include __DIR__ . '/includes/header.php';
                     <a class="button button--dark cart-summary__checkout" href="checkout.php">Go to checkout <span aria-hidden="true">→</span></a>
                     <form class="cart-summary__clear" action="cart-action.php" method="post">
                         <input type="hidden" name="action" value="clear">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars((string) $cartCsrfToken, ENT_QUOTES, 'UTF-8') ?>">
                         <button type="submit">Clear cart</button>
                     </form>
                     <a class="cart-summary__continue" href="shop.php">Continue shopping <span aria-hidden="true">↗</span></a>

@@ -7,6 +7,8 @@
  * names, images and prices are always read from the database before rendering.
  */
 
+require_once __DIR__ . '/order_access.php';
+
 if (!defined('F2B_CART_MAX_QUANTITY')) {
     define('F2B_CART_MAX_QUANTITY', 99);
 }
@@ -21,11 +23,7 @@ if (!defined('F2B_CART_DELIVERY_FEE')) {
 
 function f2bCartEnsureSession()
 {
-    if (session_status() === PHP_SESSION_NONE) {
-        @session_start();
-    }
-
-    if (session_status() !== PHP_SESSION_ACTIVE) {
+    if (!f2bOrderAccessStartSession()) {
         return false;
     }
 
@@ -261,7 +259,12 @@ function f2bCartAdd($db, $productIdValue, $sizeValue, $colourValue, $quantityVal
         return false;
     }
 
-    if (f2bCartFindProduct($db, $productId) === null) {
+    $product = f2bCartFindProduct($db, $productId);
+    $productColour = $product !== null
+        ? f2bCartValidateColour(isset($product['colour']) ? $product['colour'] : null)
+        : null;
+
+    if ($product === null || $productColour === null || $colour !== $productColour) {
         return false;
     }
 

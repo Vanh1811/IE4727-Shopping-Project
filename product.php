@@ -2,6 +2,8 @@
 $pageStylesheet = 'css/product.css';
 
 include __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/order_access.php';
+require_once __DIR__ . '/includes/cart.php';
 
 $product = null;
 $productId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
@@ -127,13 +129,9 @@ $colourPalette = [
 $colourOptions = [];
 if ($product !== null) {
     $colourOptions[] = $product['colour'];
-
-    foreach (['Black', 'White', 'Navy', 'Green'] as $colourOption) {
-        if (!in_array($colourOption, $colourOptions, true)) {
-            $colourOptions[] = $colourOption;
-        }
-    }
 }
+
+$cartCsrfToken = f2bCsrfToken('cart');
 
 include __DIR__ . '/includes/header.php';
 ?>
@@ -191,8 +189,9 @@ include __DIR__ . '/includes/header.php';
                     </div>
                     <p class="product-info__description"><?= htmlspecialchars($product['description'], ENT_QUOTES, 'UTF-8') ?></p>
 
-                    <form class="product-info__form" id="product-cart-form" action="cart-action.php" method="post">
+                    <form class="product-info__form" id="product-cart-form" action="cart-action.php" method="post" data-product-name="<?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>" data-max-quantity="<?= (int) F2B_CART_MAX_QUANTITY ?>">
                         <input type="hidden" name="action" value="add">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars((string) $cartCsrfToken, ENT_QUOTES, 'UTF-8') ?>">
                         <input type="hidden" name="product_id" value="<?= (int) $productId ?>">
                         <input type="hidden" name="colour" id="product-colour" value="<?= htmlspecialchars($product['colour'], ENT_QUOTES, 'UTF-8') ?>">
                         <input type="hidden" name="size" id="product-size" value="">

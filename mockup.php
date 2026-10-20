@@ -328,7 +328,7 @@ include __DIR__ . '/includes/header.php';
                                 <h2 id="review-title">REVIEW YOUR DESIGN</h2>
                             </div>
 
-                            <form class="review-form" id="mockup-review-form" action="mockup-action.php" method="post" novalidate>
+                            <form class="review-form" id="mockup-review-form" action="mockup-action.php" method="post">
                                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars((string) $reviewCsrfToken, ENT_QUOTES, 'UTF-8') ?>">
                                 <input type="hidden" name="mockup_id" value="<?= (int) $mockup['id'] ?>">
                                 <input type="hidden" name="expected_revision" value="<?= (int) $mockup['revision'] ?>">

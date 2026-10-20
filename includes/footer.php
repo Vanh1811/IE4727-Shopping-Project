@@ -4,7 +4,7 @@
         <div class="container footer-grid">
             <div class="footer-brand">
                 <a class="brand brand--footer" href="index.php">
-                    <span class="brand-mark" aria-hidden="true">T</span>
+                    <span class="brand-mark" aria-hidden="true">F2B</span>
                     <span>F2B SHOP</span>
                 </a>
                 <p>Thoughtful essentials and expressive pieces for every version of you.</p>
