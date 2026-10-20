@@ -42,3 +42,9 @@ PHP CLI, MySQL/MariaDB and browser automation were unavailable. No runtime PASS 
 ## CSRF integration
 
 Product add, cart update/remove/clear, checkout, guest order access, and mock-up review all use the existing `f2bCsrfToken()`/`f2bCsrfValidate()` helper. No second CSRF system was introduced.
+
+## Final Week 7 corrections
+
+- Session initialization now occurs in `includes/header.php` before any HTML output; `includes/navbar.php` reuses the existing cart helper without starting a second session.
+- `f2bCartAdd()` now compares the normalized submitted colour with the product colour loaded from MySQL and rejects unsupported colours without changing the session cart.
+- The ineffective address `<textarea pattern>` was removed. `checkout.php` now uses `trim()` and `setCustomValidity()` to reject whitespace-only addresses while retaining PHP validation and `aria-invalid` handling.

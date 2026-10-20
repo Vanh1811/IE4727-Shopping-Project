@@ -122,7 +122,7 @@ include __DIR__ . '/includes/header.php';
 
                         <div class="form-field form-field--full">
                             <label for="delivery-address">Delivery Address <span class="required-marker" aria-hidden="true">*</span></label>
-                            <textarea id="delivery-address" name="delivery_address" autocomplete="street-address" rows="3" maxlength="500" placeholder="Block, street name, unit number" pattern=".*\S.*" required aria-describedby="delivery-address-error" aria-invalid="<?= isset($checkoutErrors['delivery_address']) ? 'true' : 'false' ?>"><?= htmlspecialchars($checkoutValues['delivery_address'], ENT_QUOTES, 'UTF-8') ?></textarea>
+                            <textarea id="delivery-address" name="delivery_address" autocomplete="street-address" rows="3" maxlength="500" placeholder="Block, street name, unit number" required aria-describedby="delivery-address-error" aria-invalid="<?= isset($checkoutErrors['delivery_address']) ? 'true' : 'false' ?>"><?= htmlspecialchars($checkoutValues['delivery_address'], ENT_QUOTES, 'UTF-8') ?></textarea>
                             <p class="checkout-form__field-error" id="delivery-address-error"<?= isset($checkoutErrors['delivery_address']) ? '' : ' hidden' ?>><?= isset($checkoutErrors['delivery_address']) ? htmlspecialchars($checkoutErrors['delivery_address'], ENT_QUOTES, 'UTF-8') : '' ?></p>
                         </div>
 
@@ -203,6 +203,24 @@ include __DIR__ . '/includes/header.php';
         if (!form) {
             return;
         }
+
+        const deliveryAddress = form.querySelector('#delivery-address');
+
+        const validateDeliveryAddress = (updateAriaState = false) => {
+            if (!deliveryAddress) {
+                return;
+            }
+
+            const isBlank = deliveryAddress.value.trim() === '';
+            deliveryAddress.setCustomValidity(isBlank ? 'Enter a delivery address.' : '');
+
+            if (updateAriaState) {
+                deliveryAddress.setAttribute('aria-invalid', isBlank ? 'true' : 'false');
+            }
+        };
+
+        deliveryAddress?.addEventListener('input', () => validateDeliveryAddress(true));
+        validateDeliveryAddress();
 
         form.addEventListener('invalid', (event) => {
             form.classList.add('was-validated');

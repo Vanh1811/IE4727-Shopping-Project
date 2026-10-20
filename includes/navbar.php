@@ -1,6 +1,4 @@
 <?php
-require_once __DIR__ . '/cart.php';
-
 $currentPage = basename($_SERVER['SCRIPT_NAME'] ?? 'index.php');
 $cartItemCount = f2bCartTotalQuantity();
 

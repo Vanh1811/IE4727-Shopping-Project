@@ -1,5 +1,8 @@
 <?php
 // Pages set $pageTitle before including this file.
+require_once __DIR__ . '/cart.php';
+f2bCartEnsureSession();
+
 $pageTitle = $pageTitle ?? 'F2B SHOP';
 $pageDescription = $pageDescription ?? 'F2B SHOP — Wear Your Style.';
 ?>

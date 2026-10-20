@@ -261,7 +261,12 @@ function f2bCartAdd($db, $productIdValue, $sizeValue, $colourValue, $quantityVal
         return false;
     }
 
-    if (f2bCartFindProduct($db, $productId) === null) {
+    $product = f2bCartFindProduct($db, $productId);
+    $productColour = $product !== null
+        ? f2bCartValidateColour(isset($product['colour']) ? $product['colour'] : null)
+        : null;
+
+    if ($product === null || $productColour === null || $colour !== $productColour) {
         return false;
     }
 

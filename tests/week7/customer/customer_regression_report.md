@@ -35,6 +35,12 @@ This report is based on integrated `origin/main` at `882c3be`. PHP/MySQL and bro
 - Valid mock-up submission disables the submit button to reduce repeat clicks.
 - Footer brand mark is corrected to F2B.
 
+## Final Week 7 corrections
+
+- Header session setup now runs before HTML output, preventing navbar cart-count session/header warnings.
+- Cart add now verifies the submitted colour against the selected product’s normalized database colour; invalid colours do not mutate the session cart.
+- Checkout address validation now trims the textarea value with `setCustomValidity()` so whitespace-only addresses are rejected client-side as well as server-side.
+
 ## Handoff and deferred execution
 
 - Run all blocked workflows using disposable local data and a configured PHP/MySQL/browser environment.
