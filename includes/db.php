@@ -22,7 +22,7 @@ if (class_exists('mysqli')) {
         $db = $connection;
     } else {
         error_log('F2B SHOP database connection could not be established.');
-        $connection->close();
+        // $connection->close();
     }
 } else {
     error_log('F2B SHOP requires the PHP mysqli extension for catalogue access.');
