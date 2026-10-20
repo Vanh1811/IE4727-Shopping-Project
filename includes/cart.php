@@ -174,8 +174,10 @@ function f2bCartRead()
     return $cleanCart;
 }
 
-function f2bCartFindProduct($db, $productId)
+function f2bCartFindProduct($db, $productId, &$querySucceeded = null)
 {
+    $querySucceeded = false;
+
     if (!is_object($db) || !method_exists($db, 'prepare')) {
         return null;
     }
@@ -186,10 +188,17 @@ function f2bCartFindProduct($db, $productId)
         . 'FROM products WHERE id = ? LIMIT 1'
     );
 
-    if (!$statement || !$statement->bind_param('i', $productId) || !$statement->execute()) {
+    if (!$statement || !$statement->bind_param('i', $productId) || !$statement->execute() || !$statement->store_result()) {
         if ($statement) {
             $statement->close();
         }
+        return null;
+    }
+
+    $querySucceeded = true;
+
+    if ($statement->num_rows < 1) {
+        $statement->close();
         return null;
     }
 
@@ -222,6 +231,7 @@ function f2bCartFindProduct($db, $productId)
     );
 
     if (!$statement->fetch()) {
+        $querySucceeded = false;
         $statement->close();
         return null;
     }
@@ -259,12 +269,13 @@ function f2bCartAdd($db, $productIdValue, $sizeValue, $colourValue, $quantityVal
         return false;
     }
 
-    $product = f2bCartFindProduct($db, $productId);
+    $productQuerySucceeded = false;
+    $product = f2bCartFindProduct($db, $productId, $productQuerySucceeded);
     $productColour = $product !== null
         ? f2bCartValidateColour(isset($product['colour']) ? $product['colour'] : null)
         : null;
 
-    if ($product === null || $productColour === null || $colour !== $productColour) {
+    if (!$productQuerySucceeded || $product === null || $productColour === null || $colour !== $productColour) {
         return false;
     }
 
@@ -347,9 +358,12 @@ function f2bCartLoadItems($db)
     $cart = f2bCartRead();
 
     foreach ($cart as $key => $item) {
-        $product = f2bCartFindProduct($db, (int) $item['product_id']);
+        $productQuerySucceeded = false;
+        $product = f2bCartFindProduct($db, (int) $item['product_id'], $productQuerySucceeded);
         if ($product === null) {
-            unset($_SESSION['cart'][$key]);
+            if ($productQuerySucceeded) {
+                unset($_SESSION['cart'][$key]);
+            }
             continue;
         }
 
