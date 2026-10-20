@@ -5,8 +5,9 @@ $pageStylesheet = 'css/shop.css';
 
 include __DIR__ . '/includes/db.php';
 
-$searchTerm = isset($_GET['search']) && is_scalar($_GET['search'])
-    ? trim((string) $_GET['search'])
+$searchInput = isset($_GET['search']) ? $_GET['search'] : (isset($_GET['q']) ? $_GET['q'] : null);
+$searchTerm = is_scalar($searchInput)
+    ? trim((string) $searchInput)
     : '';
 $categorySlug = isset($_GET['category']) && is_scalar($_GET['category'])
     ? trim((string) $_GET['category'])
