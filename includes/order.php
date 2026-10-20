@@ -129,7 +129,7 @@ function f2bOrderCreate($db, $customer, $items, $totals)
     $status = 'ORDER_PLACED';
 
     $orderStatement->bind_param(
-        'ssssssdddds',
+        'ssssssddddss',
         $fullName,
         $email,
         $phone,
