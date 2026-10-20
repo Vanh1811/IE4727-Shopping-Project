@@ -174,9 +174,22 @@ function f2bCartRead()
     return $cleanCart;
 }
 
-function f2bCartFindProduct($db, $productId)
+function f2bCartDatabaseAvailable($db)
 {
     if (!is_object($db) || !method_exists($db, 'prepare')) {
+        return false;
+    }
+
+    if (property_exists($db, 'connect_errno') && (int) $db->connect_errno !== 0) {
+        return false;
+    }
+
+    return !method_exists($db, 'ping') || $db->ping();
+}
+
+function f2bCartFindProduct($db, $productId)
+{
+    if (!f2bCartDatabaseAvailable($db)) {
         return null;
     }
 
@@ -340,6 +353,10 @@ function f2bCartTotalQuantity()
 function f2bCartLoadItems($db)
 {
     if (!f2bCartEnsureSession()) {
+        return array();
+    }
+
+    if (!f2bCartDatabaseAvailable($db)) {
         return array();
     }
 
