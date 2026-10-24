@@ -75,7 +75,7 @@ function f2bCartValidateSize($value)
     }
 
     $size = strtoupper(trim((string) $value));
-    $allowedSizes = array('S', 'M', 'L', 'XL');
+    $allowedSizes = array('S', 'M', 'L', 'XL', 'ONE SIZE');
 
     return in_array($size, $allowedSizes, true) ? $size : null;
 }

@@ -12,8 +12,6 @@
 
             <div class="footer-column">
                 <h2>Company</h2>
-                <a href="index.php#about">About us</a>
-                <a href="index.php#reviews">Reviews</a>
                 <a href="orders.php">Order status</a>
             </div>
 
@@ -32,10 +30,9 @@
             </div>
         </div>
         <div class="container footer-bottom">
-            <p>&copy; <?= date('Y') ?> F2B SHOP. Week 1 project foundation.</p>
-            <p>Wear Your Style.</p>
+            <p>&copy; <?= date('Y') ?> F2B SHOP.</p>
         </div>
     </footer>
-    <script src="js/main.js"></script>
+    <script src="js/main.js?v=<?= (int) filemtime(__DIR__ . '/../js/main.js') ?>"></script>
 </body>
 </html>
