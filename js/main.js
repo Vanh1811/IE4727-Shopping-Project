@@ -1,6 +1,102 @@
 (() => {
     'use strict';
 
+    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const revealTargets = document.querySelectorAll('[data-scroll-reveal]');
+    let revealObserver = null;
+
+    if (revealTargets.length && 'IntersectionObserver' in window && !reducedMotionQuery.matches) {
+        document.documentElement.classList.add('has-scroll-motion');
+        revealObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+
+        revealTargets.forEach((target) => revealObserver.observe(target));
+    }
+
+    const brandStrip = document.querySelector('.brand-strip');
+    const brandTrack = brandStrip?.querySelector('.brand-strip__track');
+    const brandSequence = brandTrack?.querySelector('.brand-strip__sequence');
+    let stopMarquee = () => {};
+
+    if (brandStrip && brandTrack && brandSequence && 'requestAnimationFrame' in window && !reducedMotionQuery.matches) {
+        const before = brandSequence.cloneNode(true);
+        const after = brandSequence.cloneNode(true);
+        before.setAttribute('aria-hidden', 'true');
+        after.setAttribute('aria-hidden', 'true');
+        brandTrack.prepend(before);
+        brandTrack.append(after);
+        brandStrip.classList.add('brand-strip--animated');
+
+        const getSpeed = () => window.innerWidth <= 767 ? 12 : 18;
+        let sequenceWidth = 0;
+        let phase = 0;
+        let lastFrameTime = 0;
+        let frameId = 0;
+        let paused = false;
+        let destroyed = false;
+
+        const measureSequence = () => {
+            sequenceWidth = brandSequence.getBoundingClientRect().width;
+            phase = sequenceWidth ? phase % sequenceWidth : 0;
+            if (phase < 0) phase += sequenceWidth;
+        };
+
+        const animate = (now) => {
+            if (destroyed) return;
+            const deltaTime = lastFrameTime ? Math.min(now - lastFrameTime, 50) : 16;
+            lastFrameTime = now;
+
+            if (!paused && sequenceWidth > 0) {
+                phase = (phase + getSpeed() * deltaTime / 1000) % sequenceWidth;
+                if (phase < 0) phase += sequenceWidth;
+                brandTrack.style.transform = `translate3d(${-sequenceWidth - phase}px, 0, 0)`;
+            }
+
+            frameId = window.requestAnimationFrame(animate);
+        };
+
+        const onVisibilityChange = () => {
+            paused = document.hidden;
+            if (!paused) lastFrameTime = 0;
+        };
+
+        measureSequence();
+        const resizeObserver = 'ResizeObserver' in window ? new ResizeObserver(measureSequence) : null;
+        resizeObserver?.observe(brandSequence);
+        document.addEventListener('visibilitychange', onVisibilityChange);
+        frameId = window.requestAnimationFrame(animate);
+
+        stopMarquee = () => {
+            destroyed = true;
+            window.cancelAnimationFrame(frameId);
+            resizeObserver?.disconnect();
+            document.removeEventListener('visibilitychange', onVisibilityChange);
+            brandTrack.style.transform = '';
+            before.remove();
+            after.remove();
+            brandStrip.classList.remove('brand-strip--animated');
+        };
+
+        const onMotionPreferenceChange = (event) => {
+            if (event.matches) {
+                stopMarquee();
+                revealObserver?.disconnect();
+                document.documentElement.classList.remove('has-scroll-motion');
+            }
+        };
+        reducedMotionQuery.addEventListener?.('change', onMotionPreferenceChange);
+        window.addEventListener('pagehide', () => {
+            stopMarquee();
+            revealObserver?.disconnect();
+        }, { once: true });
+    }
+
     const menuToggle = document.querySelector('.menu-toggle');
     const siteMenu = document.querySelector('#site-menu');
 

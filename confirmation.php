@@ -127,21 +127,6 @@ include __DIR__ . '/includes/header.php';
                 </aside>
             </div>
 
-            <section class="confirmation-next-steps" aria-labelledby="next-steps-title">
-                <div class="confirmation-next-steps__heading">
-                    <p class="eyebrow">The design journey</p>
-                    <h2 id="next-steps-title">WHAT HAPPENS NEXT?</h2>
-                    <p>The mock-up review is part of the ordering process. You will be able to review the proposed design before the order moves into processing.</p>
-                </div>
-                <ol class="confirmation-steps">
-                    <li><span>01</span><strong>Order received</strong><p>Your order details are recorded for the design team.</p></li>
-                    <li><span>02</span><strong>Design mock-up prepared</strong><p>A visual mock-up is prepared for your review.</p></li>
-                    <li><span>03</span><strong>Customer reviews the mock-up</strong><p>Check the proposed design and details.</p></li>
-                    <li><span>04</span><strong>Approve or request changes</strong><p>Share your decision before production begins.</p></li>
-                    <li><span>05</span><strong>Order proceeds to processing</strong><p>Once approved, the order moves forward.</p></li>
-                </ol>
-            </section>
-
             <div class="confirmation-actions">
                 <a class="button button--dark" href="orders.php">VIEW MY ORDERS <span aria-hidden="true">&rarr;</span></a>
                 <a class="button button--outline" href="shop.php">CONTINUE SHOPPING <span aria-hidden="true">&rarr;</span></a>

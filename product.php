@@ -2,6 +2,7 @@
 $pageStylesheet = 'css/product.css';
 
 include __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/product_colour.php';
 require_once __DIR__ . '/includes/order_access.php';
 require_once __DIR__ . '/includes/cart.php';
 
@@ -22,7 +23,8 @@ if ($productId !== false && $productId !== null && $productId > 0 && $db !== nul
             p.image_3,
             p.image_4,
             p.colour,
-            c.name AS category_name
+            c.name AS category_name,
+            c.slug AS category_slug
         FROM products AS p
         INNER JOIN categories AS c ON c.id = p.category_id
         WHERE p.id = ?
@@ -47,7 +49,8 @@ if ($productId !== false && $productId !== null && $productId > 0 && $db !== nul
                 $productImageThree,
                 $productImageFour,
                 $productColour,
-                $productCategory
+                $productCategory,
+                $productCategorySlug
             );
 
             if ($productStatement->fetch()) {
@@ -57,20 +60,14 @@ if ($productId !== false && $productId !== null && $productId > 0 && $db !== nul
                 $discountPercent = $hasDiscount
                     ? (int) round((1 - ($price / $originalPrice)) * 100)
                     : 0;
+                $filledStars = max(0, min(5, (int) round((float) $productRating)));
                 $productImages = [];
 
-                foreach (
-                    [
-                        [$productImage, $productName . ' front view'],
-                        [$productImageTwo, $productName . ' detail view'],
-                        [$productImageThree, $productName . ' back view'],
-                        [$productImageFour, $productName . ' styled view'],
-                    ] as [$imagePath, $imageAlt]
-                ) {
+                foreach ([$productImage, $productImageTwo, $productImageThree, $productImageFour] as $imageIndex => $imagePath) {
                     if (is_string($imagePath) && trim($imagePath) !== '') {
                         $productImages[] = [
                             'src' => trim($imagePath),
-                            'alt' => $imageAlt,
+                            'alt' => $productName . ' photo ' . ($imageIndex + 1),
                         ];
                     }
                 }
@@ -78,12 +75,15 @@ if ($productId !== false && $productId !== null && $productId > 0 && $db !== nul
                 $product = [
                     'name' => $productName,
                     'category' => $productCategory,
+                    'isAccessory' => $productCategorySlug === 'accessories',
                     'currentPrice' => '$' . number_format($price, 2),
                     'originalPrice' => $hasDiscount ? '$' . number_format($originalPrice, 2) : '',
                     'discount' => $discountPercent > 0 ? '-' . $discountPercent . '%' : '',
                     'rating' => number_format((float) $productRating, 1),
+                    'stars' => str_repeat('&#9733;', $filledStars) . str_repeat('&#9734;', 5 - $filledStars),
                     'reviewCount' => (string) $productReviewCount . ' reviews',
                     'colour' => $productColour,
+                    'colourHex' => f2bProductColourHex($productColour),
                     'description' => $productDescription,
                     'images' => $productImages,
                 ];
@@ -110,21 +110,6 @@ if ($product === null) {
     $pageTitle = 'Product Not Found';
     $pageDescription = 'The requested product could not be found.';
 }
-
-$colourPalette = [
-    'Black' => '#242424',
-    'White' => '#f7f6f2',
-    'Navy' => '#25364e',
-    'Green' => '#65765a',
-    'Coral' => '#d88372',
-    'Cream' => '#e7ddc9',
-    'Blue' => '#6688a8',
-    'Olive' => '#7b8060',
-    'Ink' => '#2e3642',
-    'Mist' => '#bec4c3',
-    'Sand' => '#c5a87d',
-    'Slate' => '#64717d',
-];
 
 $colourOptions = [];
 if ($product !== null) {
@@ -175,7 +160,7 @@ include __DIR__ . '/includes/header.php';
                     <p class="eyebrow"><?= htmlspecialchars($product['category'], ENT_QUOTES, 'UTF-8') ?></p>
                     <h1 class="product-info__title" id="product-title"><?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?></h1>
                     <div class="product-info__rating">
-                        <span class="product-stars" aria-label="Rated <?= htmlspecialchars($product['rating'], ENT_QUOTES, 'UTF-8') ?> out of 5">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+                        <span class="product-stars" aria-label="Rated <?= htmlspecialchars($product['rating'], ENT_QUOTES, 'UTF-8') ?> out of 5"><?= $product['stars'] ?></span>
                         <a href="#reviews"><?= htmlspecialchars($product['rating'], ENT_QUOTES, 'UTF-8') ?> (<?= htmlspecialchars($product['reviewCount'], ENT_QUOTES, 'UTF-8') ?>)</a>
                     </div>
                     <div class="product-info__price">
@@ -194,14 +179,14 @@ include __DIR__ . '/includes/header.php';
                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars((string) $cartCsrfToken, ENT_QUOTES, 'UTF-8') ?>">
                         <input type="hidden" name="product_id" value="<?= (int) $productId ?>">
                         <input type="hidden" name="colour" id="product-colour" value="<?= htmlspecialchars($product['colour'], ENT_QUOTES, 'UTF-8') ?>">
-                        <input type="hidden" name="size" id="product-size" value="">
+                        <input type="hidden" name="size" id="product-size" value="<?= $product['isAccessory'] ? 'ONE SIZE' : '' ?>">
                         <input type="hidden" name="quantity" id="product-quantity" value="1">
 
                         <fieldset class="product-option">
                             <legend>Colour: <strong id="selected-colour"><?= htmlspecialchars($product['colour'], ENT_QUOTES, 'UTF-8') ?></strong></legend>
                             <div class="product-swatches" aria-label="Colour options">
                                 <?php foreach ($colourOptions as $colourOption): ?>
-                                    <button class="product-swatch" type="button" data-colour="<?= htmlspecialchars($colourOption, ENT_QUOTES, 'UTF-8') ?>" aria-label="<?= htmlspecialchars($colourOption, ENT_QUOTES, 'UTF-8') ?>" aria-pressed="<?= $product['colour'] === $colourOption ? 'true' : 'false' ?>" style="background-color: <?= htmlspecialchars($colourPalette[$colourOption] ?? '#b8a78e', ENT_QUOTES, 'UTF-8') ?>"></button>
+                                    <button class="product-swatch" type="button" data-colour="<?= htmlspecialchars($colourOption, ENT_QUOTES, 'UTF-8') ?>" aria-label="<?= htmlspecialchars($colourOption, ENT_QUOTES, 'UTF-8') ?>" aria-pressed="<?= $product['colour'] === $colourOption ? 'true' : 'false' ?>" style="background-color: <?= htmlspecialchars($product['colourHex'], ENT_QUOTES, 'UTF-8') ?>"></button>
                                 <?php endforeach; ?>
                             </div>
                         </fieldset>
@@ -210,13 +195,16 @@ include __DIR__ . '/includes/header.php';
                             <legend class="sr-only">Size</legend>
                             <div class="product-option__heading">
                                 <span aria-hidden="true">Size</span>
-                                <a href="#size-guide">Size guide</a>
                             </div>
-                            <div class="product-size-grid" aria-label="Size options">
-                                <button type="button" data-size="S" aria-pressed="false">S</button>
-                                <button type="button" data-size="M" aria-pressed="false">M</button>
-                                <button type="button" data-size="L" aria-pressed="false">L</button>
-                                <button type="button" data-size="XL" aria-pressed="false">XL</button>
+                            <div class="product-size-grid<?= $product['isAccessory'] ? ' product-size-grid--single' : '' ?>" aria-label="Size options">
+                                <?php if ($product['isAccessory']): ?>
+                                    <button type="button" data-size="ONE SIZE" aria-pressed="true">One size</button>
+                                <?php else: ?>
+                                    <button type="button" data-size="S" aria-pressed="false">S</button>
+                                    <button type="button" data-size="M" aria-pressed="false">M</button>
+                                    <button type="button" data-size="L" aria-pressed="false">L</button>
+                                    <button type="button" data-size="XL" aria-pressed="false">XL</button>
+                                <?php endif; ?>
                             </div>
                         </fieldset>
 
@@ -234,23 +222,15 @@ include __DIR__ . '/includes/header.php';
                     </form>
 
                     <dl class="product-highlights">
-                        <div><dt>Fit</dt><dd>Relaxed</dd></div>
-                        <div><dt>Fabric</dt><dd>Cotton blend</dd></div>
-                        <div><dt>Care</dt><dd>Cold wash</dd></div>
+                        <div><dt>Category</dt><dd><?= htmlspecialchars($product['category'], ENT_QUOTES, 'UTF-8') ?></dd></div>
+                        <div><dt>Colour</dt><dd><?= htmlspecialchars($product['colour'], ENT_QUOTES, 'UTF-8') ?></dd></div>
+                        <div><dt>Gallery</dt><dd><?= count($product['images']) ?> views</dd></div>
                     </dl>
                 </div>
             </section>
 
-            <section class="product-notes" id="size-guide" aria-labelledby="product-notes-title">
-                <div>
-                    <p class="eyebrow">Product notes</p>
-                    <h2 id="product-notes-title">Designed for repeat wear.</h2>
-                </div>
-                <p>Roomy through the body with a structured shoulder and a clean hem. Wear it open over a tee or buttoned as a lightweight shirt.</p>
-            </section>
-
             <section class="product-review-anchor" id="reviews" aria-label="Product reviews">
-                <span class="product-stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+                <span class="product-stars" aria-hidden="true"><?= $product['stars'] ?></span>
                 <span>Community rating <?= htmlspecialchars($product['rating'], ENT_QUOTES, 'UTF-8') ?> from <?= htmlspecialchars($product['reviewCount'], ENT_QUOTES, 'UTF-8') ?></span>
             </section>
         <?php endif; ?>
