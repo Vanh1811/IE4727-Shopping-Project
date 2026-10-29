@@ -104,6 +104,9 @@ if ($db !== null && $validPriceRange) {
             p.rating,
             p.review_count,
             p.image,
+            p.image_2,
+            p.image_3,
+            p.image_4,
             p.colour,
             p.is_new,
             p.is_top_selling,
@@ -174,6 +177,9 @@ if ($db !== null && $validPriceRange) {
                 $productRating,
                 $productReviewCount,
                 $productImage,
+                $productImageTwo,
+                $productImageThree,
+                $productImageFour,
                 $productColour,
                 $productIsNew,
                 $productIsTopSelling,
@@ -202,6 +208,10 @@ if ($db !== null && $validPriceRange) {
                     'stars' => str_repeat('&#9733;', $filledStars) . str_repeat('&#9734;', 5 - $filledStars),
                     'reviews' => (string) $productReviewCount,
                     'image' => $productImage,
+                    'images' => array_values(array_filter(
+                        [$productImage, $productImageTwo, $productImageThree, $productImageFour],
+                        static function ($image): bool { return is_string($image) && trim($image) !== ''; }
+                    )),
                     'alt' => $productName . ' product image',
                     'badge' => (int) $productIsNew === 1 ? 'New' : ($discountPercent > 0 ? 'Sale' : null),
                 ];
@@ -364,7 +374,13 @@ include __DIR__ . '/includes/header.php';
                                     <?php if (!empty($product['badge'])): ?>
                                         <span class="product-card__badge"><?= htmlspecialchars($product['badge'], ENT_QUOTES, 'UTF-8') ?></span>
                                     <?php endif; ?>
-                                    <img class="product-card__image-art" src="<?= htmlspecialchars($product['image'], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($product['alt'], ENT_QUOTES, 'UTF-8') ?>">
+                                    <span class="product-card__gallery" data-hover-gallery>
+                                        <span class="product-card__gallery-track">
+                                            <?php foreach ($product['images'] as $imageIndex => $image): ?>
+                                                <img class="product-card__image-art" src="<?= htmlspecialchars($image, ENT_QUOTES, 'UTF-8') ?>" alt="<?= $imageIndex === 0 ? htmlspecialchars($product['alt'], ENT_QUOTES, 'UTF-8') : '' ?>" <?= $imageIndex > 0 ? 'aria-hidden="true"' : '' ?> <?= $imageIndex > 0 ? 'loading="lazy"' : 'fetchpriority="low"' ?>>
+                                            <?php endforeach; ?>
+                                        </span>
+                                    </span>
                                 </div>
                             </a>
                             <div class="product-card__content">
