@@ -22,16 +22,11 @@ if ($order !== null && f2bOrderAccessStartSession()) {
     if ($mailOrderId === (int) $order['id']) {
         $mailStatus = isset($_SESSION['last_order_mail_status']) ? (string) $_SESSION['last_order_mail_status'] : null;
         $mailMessage = isset($_SESSION['last_order_mail_message']) ? (string) $_SESSION['last_order_mail_message'] : '';
-        unset(
-            $_SESSION['last_order_mail_order_id'],
-            $_SESSION['last_order_mail_status'],
-            $_SESSION['last_order_mail_message']
-        );
     }
 }
 
 if ($order !== null && !in_array($mailStatus, array('sent', 'already_sent', 'disabled', 'failed'), true)) {
-    $mailStatus = $order['email_sent_at'] !== '' ? 'already_sent' : 'disabled';
+    $mailStatus = $order['email_sent_at'] !== '' ? 'already_sent' : null;
 }
 
 $orderDate = $order !== null ? date('j F Y', strtotime($order['created_at'])) : '';
@@ -80,8 +75,10 @@ include __DIR__ . '/includes/header.php';
                             <span>The local acknowledgement was previously handled for this order. No new email was sent.</span>
                         <?php elseif ($mailStatus === 'failed'): ?>
                             <span><?= htmlspecialchars($mailMessage !== '' ? $mailMessage : 'The order was saved, but the local email was not accepted or recorded. No automatic retry was made.', ENT_QUOTES, 'UTF-8') ?></span>
-                        <?php else: ?>
+                        <?php elseif ($mailStatus === 'disabled'): ?>
                             <span><?= htmlspecialchars($mailMessage !== '' ? $mailMessage : 'Local email is not configured. Your order is saved; no email was attempted.', ENT_QUOTES, 'UTF-8') ?></span>
+                        <?php else: ?>
+                            <span>No local email handoff is recorded for this order. Confirmation refresh does not send email.</span>
                         <?php endif; ?>
                     </div>
 
