@@ -43,6 +43,8 @@ async function main() {
   console.log(`Node: ${process.version}`);
   console.log(`Base URL: ${baseURL.toString()}`);
   console.log(`Mutation gate: ${gateReason}`);
+  const staffReady = process.env.E2E_ENABLE_STAFF === '1' && Boolean(process.env.E2E_STAFF_PASSWORD);
+  console.log(`Staff gate: ${staffReady ? 'opt-in and local password present' : 'closed (password values are never printed)'}`);
   let appOK = false;
   try {
     const response = await fetch(new URL('index.php', baseURL), { signal: AbortSignal.timeout(6000) });
@@ -92,10 +94,11 @@ async function main() {
     } catch {
       console.log('Mailpit API: unreachable; mail tests need a loopback Mailpit server.');
     }
+    console.log(`Apache local mail transport attestation: ${process.env.E2E_PHP_MAIL_VERIFIED === '1' ? 'set by operator' : 'missing; verify the local-only PHP transport before mail tests'}.`);
   } else {
     console.log('Mailpit: disabled.');
   }
-  if (!appOK) process.exitCode = 2;
+  if (!appOK || (process.env.E2E_ALLOW_MUTATIONS === '1' && !gateReason.startsWith('OPEN'))) process.exitCode = 2;
 }
 
 main().catch((error) => {

@@ -5,6 +5,8 @@ import { readSavedOrder } from '../fixtures/db';
 import { ProductPage } from '../pages/ProductPage';
 import { CheckoutPage } from '../pages/CheckoutPage';
 
+test.use({ screenshot: 'off', trace: 'off' });
+
 test.describe('checkout @checkout', () => {
   test('E2E-07 required field validation keeps the session cart', async ({ page }) => {
     await page.goto('shop.php');

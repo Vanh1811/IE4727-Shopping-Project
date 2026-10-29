@@ -15,6 +15,7 @@ export interface E2EConfig {
   staffEnabled: boolean;
   staffPassword: string;
   mailEnabled: boolean;
+  phpMailVerified: boolean;
   mailpitURL: string;
   expectedLocalRecipient: string;
 }
@@ -67,6 +68,11 @@ export function readE2EConfig(): E2EConfig {
   if (!Number.isInteger(dbPort) || dbPort < 1 || dbPort > 65535) {
     throw new Error('E2E_DB_PORT must be a valid TCP port.');
   }
+  const dbHost = process.env.E2E_DB_HOST ?? '127.0.0.1';
+  const localDBHost = dbHost === 'localhost' || dbHost === '127.0.0.1' || dbHost === '::1';
+  if (!localDBHost && !(allowPrivateHost && isPrivateIPv4(dbHost))) {
+    throw new Error('E2E_DB_HOST must be localhost. Private IPv4 hosts require E2E_ALLOW_PRIVATE_HOST=1.');
+  }
 
   return {
     baseURL,
@@ -74,13 +80,14 @@ export function readE2EConfig(): E2EConfig {
     allowMutations: truthy(process.env.E2E_ALLOW_MUTATIONS),
     phpDbVerified: truthy(process.env.E2E_PHP_DB_VERIFIED),
     dbName: process.env.E2E_DB_NAME ?? '',
-    dbHost: process.env.E2E_DB_HOST ?? '127.0.0.1',
+    dbHost,
     dbPort,
     dbUser: process.env.E2E_DB_USER ?? '',
     dbPassword: process.env.E2E_DB_PASSWORD ?? '',
     staffEnabled: truthy(process.env.E2E_ENABLE_STAFF),
     staffPassword: process.env.E2E_STAFF_PASSWORD ?? '',
     mailEnabled: truthy(process.env.E2E_ENABLE_MAIL),
+    phpMailVerified: truthy(process.env.E2E_PHP_MAIL_VERIFIED),
     mailpitURL,
     expectedLocalRecipient: process.env.E2E_EXPECTED_LOCAL_RECIPIENT ?? '',
   };
@@ -109,6 +116,22 @@ export function staffGateReason(config = readE2EConfig()): string | null {
 export function requireStaffEnabled(config = readE2EConfig()): void {
   const reason = staffGateReason(config);
   if (reason) throw new Error(`Staff safety gate is closed: ${reason}`);
+}
+
+export function mailGateReason(config = readE2EConfig()): string | null {
+  const mutationReason = mutationGateReason(config);
+  if (mutationReason) return mutationReason;
+  if (!config.mailEnabled) return 'Set E2E_ENABLE_MAIL=1 to opt in to local Mailpit receipt tests.';
+  if (!config.phpMailVerified) return 'Verify Apache uses the local-only mail transport and set E2E_PHP_MAIL_VERIFIED=1.';
+  if (!/^[^\s@]+@(?:[^\s@]+\.)?(?:test|localhost|local)$/i.test(config.expectedLocalRecipient)) {
+    return 'E2E_EXPECTED_LOCAL_RECIPIENT must use a .test, .localhost, or .local address.';
+  }
+  return null;
+}
+
+export function requireMailEnabled(config = readE2EConfig()): void {
+  const reason = mailGateReason(config);
+  if (reason) throw new Error(`Local mail safety gate is closed: ${reason}`);
 }
 
 export function hasReadOnlyDBConfig(config = readE2EConfig()): boolean {
