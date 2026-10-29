@@ -65,10 +65,17 @@ async function main() {
   }
 
   if (dbName && process.env.E2E_DB_USER) {
+    const dbHost = process.env.E2E_DB_HOST || '127.0.0.1';
+    const dbHostParts = dbHost.split('.').map(Number);
+    const privateDBHost = dbHostParts.length === 4 && dbHostParts.every((part) => Number.isInteger(part) && part >= 0 && part <= 255)
+      && (dbHostParts[0] === 10 || (dbHostParts[0] === 172 && dbHostParts[1] >= 16 && dbHostParts[1] <= 31) || (dbHostParts[0] === 192 && dbHostParts[1] === 168));
+    if (!['localhost', '127.0.0.1', '::1'].includes(dbHost) && !(allowPrivate && privateDBHost)) {
+      throw new Error('E2E_DB_HOST must be localhost; private IPv4 requires E2E_ALLOW_PRIVATE_HOST=1.');
+    }
     let connection;
     try {
       connection = await mysql.createConnection({
-        host: process.env.E2E_DB_HOST || '127.0.0.1',
+        host: dbHost,
         port: Number(process.env.E2E_DB_PORT || '3306'),
         user: process.env.E2E_DB_USER,
         password: process.env.E2E_DB_PASSWORD || '',

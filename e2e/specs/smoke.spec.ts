@@ -19,7 +19,7 @@ test.describe('read-only smoke @smoke', () => {
     await expect(page.locator('body')).not.toContainText(/Fatal error|Uncaught (?:Error|Exception)/i);
   });
 
-  test('E2E-03 first catalogue product opens with title and add-to-cart control', async ({ page }) => {
+  test('E2E-05 first catalogue product opens with title and add-to-cart control', async ({ page }) => {
     await page.goto('shop.php');
     const firstProduct = page.locator('.product-card__name a').first();
     await expect(firstProduct).toBeVisible();
@@ -29,7 +29,7 @@ test.describe('read-only smoke @smoke', () => {
     await expect(page.locator('#add-to-cart')).toBeVisible();
   });
 
-  test('E2E-04 invalid product identifiers render the not-found state', async ({ page }) => {
+  test('E2E-15 invalid product identifiers render the not-found state', async ({ page }) => {
     await page.goto('product.php?id=0');
     await expect(page.getByRole('heading', { name: 'PRODUCT NOT FOUND' })).toBeVisible();
     await page.goto('product.php?id=999999999');

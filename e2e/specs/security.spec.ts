@@ -38,7 +38,7 @@ test.describe('scoped security regressions @security', () => {
     await expect(page.locator('body')).not.toContainText(syntheticCustomer.full_name);
   });
 
-  test('E2E-18 bounded XSS search text renders as an input value only', async ({ page }) => {
+  test('E2E-19 bounded XSS search text renders as an input value only', async ({ page }) => {
     const payload = `\"><script>window.__f2bE2eXss = true</script>${syntheticCustomer.full_name}`;
     await page.goto(`shop.php?search=${encodeURIComponent(payload)}`);
     await expect(page.locator('#catalogue-search')).toHaveValue(payload);
