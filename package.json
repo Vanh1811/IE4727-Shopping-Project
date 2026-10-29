@@ -1,0 +1,22 @@
+{
+  "name": "f2b-shop-e2e",
+  "private": true,
+  "description": "Development-only Playwright end-to-end tests for the PHP/MySQL F2B SHOP application.",
+  "scripts": {
+    "e2e": "playwright test",
+    "e2e:smoke": "playwright test e2e/specs/smoke.spec.ts",
+    "e2e:ui": "playwright test --ui",
+    "e2e:headed": "playwright test --headed",
+    "e2e:report": "playwright show-report",
+    "e2e:list": "playwright test --list",
+    "e2e:preflight": "node e2e/config/preflight.cjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^26.6.6",
+    "dotenv": "^18.0.9",
+    "mysql2": "^3.24.6",
+    "typescript": "^7.0.2"
+  }
+}

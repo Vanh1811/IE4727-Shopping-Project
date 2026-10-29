@@ -24,9 +24,16 @@ ehthumbs.db
 .env
 .env.*
 !.env.example
+!.env.e2e.example
 
 # Dependencies and generated directories
 vendor/
 node_modules/
 cache/
 tmp/
+
+# Playwright end-to-end artifacts
+playwright-report/
+test-results/
+blob-report/
+playwright/.cache/
