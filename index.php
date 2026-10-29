@@ -26,6 +26,10 @@ $mapHomepageProduct = static function (array $row): array {
         'meta' => $row['category_name'] . ' / ' . $row['colour'],
         'colourHex' => f2bProductColourHex($row['colour']),
         'image' => $row['image'],
+        'images' => array_values(array_filter(
+            [$row['image'], $row['image_2'], $row['image_3'], $row['image_4']],
+            static function ($image): bool { return is_string($image) && trim($image) !== ''; }
+        )),
         'rating' => number_format((float) $row['rating'], 1),
         'stars' => str_repeat('&#9733;', $filledStars) . str_repeat('&#9734;', 5 - $filledStars),
         'badge' => $badge,
@@ -39,7 +43,7 @@ $loadHomepageProducts = static function ($connection, string $flagColumn) use ($
         return [];
     }
 
-    $query = 'SELECT p.id, p.name, p.price, p.original_price, p.rating, p.image, p.colour, '
+    $query = 'SELECT p.id, p.name, p.price, p.original_price, p.rating, p.image, p.image_2, p.image_3, p.image_4, p.colour, '
         . 'p.is_new, p.is_top_selling, c.name AS category_name '
         . 'FROM products AS p '
         . 'INNER JOIN categories AS c ON c.id = p.category_id '
@@ -133,7 +137,13 @@ include __DIR__ . '/includes/header.php';
                 <article class="product-card" data-scroll-reveal="card">
                     <a class="product-card__image product-card__image--photo" href="product.php?id=<?= $product['id'] ?>" aria-label="View <?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>">
                         <?php if (!empty($product['badge'])): ?><span class="product-badge"><?= htmlspecialchars($product['badge'], ENT_QUOTES, 'UTF-8') ?></span><?php endif; ?>
-                        <img class="product-card__image-art" src="<?= htmlspecialchars($product['image'], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?> product image">
+                        <span class="product-card__gallery" data-hover-gallery>
+                            <span class="product-card__gallery-track">
+                                <?php foreach ($product['images'] as $imageIndex => $image): ?>
+                                    <img class="product-card__image-art" src="<?= htmlspecialchars($image, ENT_QUOTES, 'UTF-8') ?>" alt="<?= $imageIndex === 0 ? htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') . ' product image' : '' ?>" <?= $imageIndex > 0 ? 'aria-hidden="true"' : '' ?> <?= $imageIndex > 0 ? 'loading="lazy"' : 'fetchpriority="low"' ?>>
+                                <?php endforeach; ?>
+                            </span>
+                        </span>
                     </a>
                     <div class="product-card__details">
                         <div>
@@ -166,7 +176,13 @@ include __DIR__ . '/includes/header.php';
                 <article class="product-card">
                     <a class="product-card__image product-card__image--photo" href="product.php?id=<?= $product['id'] ?>" aria-label="View <?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>">
                         <?php if (!empty($product['badge'])): ?><span class="product-badge"><?= htmlspecialchars($product['badge'], ENT_QUOTES, 'UTF-8') ?></span><?php endif; ?>
-                        <img class="product-card__image-art" src="<?= htmlspecialchars($product['image'], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?> product image">
+                        <span class="product-card__gallery" data-hover-gallery>
+                            <span class="product-card__gallery-track">
+                                <?php foreach ($product['images'] as $imageIndex => $image): ?>
+                                    <img class="product-card__image-art" src="<?= htmlspecialchars($image, ENT_QUOTES, 'UTF-8') ?>" alt="<?= $imageIndex === 0 ? htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') . ' product image' : '' ?>" <?= $imageIndex > 0 ? 'aria-hidden="true"' : '' ?> <?= $imageIndex > 0 ? 'loading="lazy"' : 'fetchpriority="low"' ?>>
+                                <?php endforeach; ?>
+                            </span>
+                        </span>
                     </a>
                     <div class="product-card__details">
                         <div>

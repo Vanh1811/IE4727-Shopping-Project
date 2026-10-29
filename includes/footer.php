@@ -16,13 +16,6 @@
             </div>
 
             <div class="footer-column">
-                <h2>Help</h2>
-                <a href="checkout.php">Delivery &amp; returns</a>
-                <a href="checkout.php#payment">Payment</a>
-                <a href="index.php#contact">Contact</a>
-            </div>
-
-            <div class="footer-column">
                 <h2>Shop</h2>
                 <a href="shop.php">All products</a>
                 <a href="index.php#new-arrivals">New arrivals</a>

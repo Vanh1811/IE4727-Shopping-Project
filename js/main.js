@@ -125,6 +125,57 @@
         });
     }
 
+    if (!reducedMotionQuery.matches) {
+        document.querySelectorAll('[data-hover-gallery]').forEach((gallery) => {
+            const track = gallery.querySelector('.product-card__gallery-track');
+            const slides = track?.querySelectorAll('.product-card__image-art') || [];
+            const trigger = gallery.closest('a');
+
+            if (!track || slides.length < 2 || !trigger) {
+                return;
+            }
+
+            let activeIndex = 0;
+            let direction = 1;
+            let timer = null;
+
+            const showSlide = (index) => {
+                activeIndex = index;
+                track.style.transform = `translate3d(${-activeIndex * 100}%, 0, 0)`;
+            };
+
+            const start = () => {
+                if (timer !== null) {
+                    return;
+                }
+
+                timer = window.setInterval(() => {
+                    if (activeIndex === slides.length - 1) direction = -1;
+                    if (activeIndex === 0) direction = 1;
+                    showSlide(activeIndex + direction);
+                }, 1050);
+            };
+
+            const stop = () => {
+                if (timer !== null) {
+                    window.clearInterval(timer);
+                    timer = null;
+                }
+                direction = 1;
+                showSlide(0);
+            };
+
+            trigger.addEventListener('mouseenter', start);
+            trigger.addEventListener('mouseleave', stop);
+            trigger.addEventListener('focusin', start);
+            trigger.addEventListener('focusout', (event) => {
+                if (!trigger.contains(event.relatedTarget)) {
+                    stop();
+                }
+            });
+        });
+    }
+
     const productPage = document.querySelector('.product-page');
 
     if (productPage) {
