@@ -50,11 +50,12 @@ if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST') 
                     $checkoutTotals
                 );
                 f2bOrderAccessStartSession();
+                $_SESSION['last_order_id'] = $orderResult['order_id'];
+                $_SESSION['last_order_mail_order_id'] = $orderResult['order_id'];
                 $_SESSION['last_order_mail_status'] = $mailResult['status'];
                 $_SESSION['last_order_mail_message'] = $mailResult['message'];
                 f2bCartClear();
                 f2bCartEnsureSession();
-                $_SESSION['last_order_id'] = $orderResult['order_id'];
                 header('Location: confirmation.php?order=' . $orderResult['order_id'], true, 303);
                 exit;
             }

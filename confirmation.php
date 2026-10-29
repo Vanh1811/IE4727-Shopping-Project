@@ -18,12 +18,15 @@ $mailStatus = null;
 $mailMessage = '';
 
 if ($order !== null && f2bOrderAccessStartSession()) {
-    $lastOrderId = isset($_SESSION['last_order_id']) ? (int) $_SESSION['last_order_id'] : 0;
-    if ($lastOrderId === (int) $order['id']) {
+    $mailOrderId = isset($_SESSION['last_order_mail_order_id']) ? (int) $_SESSION['last_order_mail_order_id'] : 0;
+    if ($mailOrderId === (int) $order['id']) {
         $mailStatus = isset($_SESSION['last_order_mail_status']) ? (string) $_SESSION['last_order_mail_status'] : null;
         $mailMessage = isset($_SESSION['last_order_mail_message']) ? (string) $_SESSION['last_order_mail_message'] : '';
-        unset($_SESSION['last_order_mail_status'], $_SESSION['last_order_mail_message']);
     }
+}
+
+if ($order !== null && !in_array($mailStatus, array('sent', 'already_sent', 'disabled', 'failed'), true)) {
+    $mailStatus = $order['email_sent_at'] !== '' ? 'already_sent' : null;
 }
 
 $orderDate = $order !== null ? date('j F Y', strtotime($order['created_at'])) : '';
@@ -54,22 +57,28 @@ include __DIR__ . '/includes/header.php';
                 <section class="confirmation-intro" aria-labelledby="confirmation-title">
                     <div class="confirmation-success-mark" aria-hidden="true">&#10003;</div>
                     <p class="eyebrow">F2B SHOP / ORDER <?= (int) $order['id'] ?></p>
-                    <h1 class="confirmation-page__title" id="confirmation-title">ORDER CONFIRMED</h1>
+                    <h1 class="confirmation-page__title" id="confirmation-title">ORDER PLACED</h1>
                     <p class="confirmation-intro__message">Thank you, <?= htmlspecialchars($order['full_name'], ENT_QUOTES, 'UTF-8') ?>. Your order is saved and ready for the next step: preparing your design mock-up.</p>
 
-                    <div class="confirmation-note" role="note">
-                        <?php if ($initialAccessCode !== null): ?>
+                    <?php if ($initialAccessCode !== null): ?>
+                        <div class="confirmation-note" role="note">
                             <strong>Save your guest access code</strong>
                             <span>Your one-time access code is <code><?= htmlspecialchars($initialAccessCode, ENT_QUOTES, 'UTF-8') ?></code>. Save it with order #<?= (int) $order['id'] ?> to access this order from another session.</span>
+                        </div>
+                    <?php endif; ?>
+
+                    <div class="confirmation-note confirmation-note--mail" role="status" aria-live="polite">
+                        <strong>Local email acknowledgement status</strong>
+                        <?php if ($mailStatus === 'sent'): ?>
+                            <span><?= htmlspecialchars($mailMessage !== '' ? $mailMessage : 'Accepted by the configured local mail transport. Check your own local inbox.', ENT_QUOTES, 'UTF-8') ?></span>
+                        <?php elseif ($mailStatus === 'already_sent'): ?>
+                            <span>The local acknowledgement was previously handled for this order. No new email was sent.</span>
+                        <?php elseif ($mailStatus === 'failed'): ?>
+                            <span><?= htmlspecialchars($mailMessage !== '' ? $mailMessage : 'The order was saved, but the local email was not accepted or recorded. No automatic retry was made.', ENT_QUOTES, 'UTF-8') ?></span>
+                        <?php elseif ($mailStatus === 'disabled'): ?>
+                            <span><?= htmlspecialchars($mailMessage !== '' ? $mailMessage : 'Local email is not configured. Your order is saved; no email was attempted.', ENT_QUOTES, 'UTF-8') ?></span>
                         <?php else: ?>
-                            <strong>Order acknowledgement</strong>
-                            <?php if ($mailStatus === 'sent' || $order['email_sent_at'] !== ''): ?>
-                                <span><?= htmlspecialchars($mailMessage !== '' ? $mailMessage : 'The local acknowledgement email was sent successfully.', ENT_QUOTES, 'UTF-8') ?></span>
-                            <?php elseif ($mailStatus === 'failed'): ?>
-                                <span><?= htmlspecialchars($mailMessage !== '' ? $mailMessage : 'The order was saved, but the local acknowledgement email could not be sent.', ENT_QUOTES, 'UTF-8') ?></span>
-                            <?php else: ?>
-                                <span>Local acknowledgement email is not configured for this environment. Your order is still saved securely.</span>
-                            <?php endif; ?>
+                            <span>No local email handoff is recorded for this order. Confirmation refresh does not send email.</span>
                         <?php endif; ?>
                     </div>
 
