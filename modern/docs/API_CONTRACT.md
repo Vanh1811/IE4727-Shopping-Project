@@ -48,10 +48,17 @@ Cart, order, mock-up and staff endpoints will be added in their owning stages.
 | `PATCH /api/v1/cart/items/:key` | Session + CSRF | Changes one existing line quantity after revalidating the catalogue option. |
 | `DELETE /api/v1/cart/items/:key`, `DELETE /api/v1/cart` | Session + CSRF | Removes one variant or clears the bag. |
 | `GET /api/v1/checkout` | Guest session | Returns current bag and totals; empty bags return `409 EMPTY_CART`. |
-| `POST /api/v1/checkout` | Session + CSRF + `Idempotency-Key` | Uses the PHP field names/messages/limits, fetches current prices, creates an immutable order snapshot and clears the session cart only after the Mongo transaction commits. Initial state is `ORDER_PLACED`; this does not charge or confirm payment. |
+| `POST /api/v1/checkout` | Session + CSRF + `Idempotency-Key` | Uses the PHP field names/messages/limits, fetches current prices, creates an immutable order snapshot and clears the session cart only after the Mongo transaction commits. Initial state is `ORDER_PLACED`; this does not charge or confirm payment. The optional local receipt runs after commit and never gates order success. |
 | `GET /api/v1/orders/:orderNumber/confirmation` | Session-scoped order access | Returns saved totals/snapshots; initial raw 48-hex guest access code is consumed from the session on first read and is never stored in Mongo. Response is `no-store`. |
 
 Cart lines contain only product ID, size, colour and quantity in the session. Subtotal, 10% discount, $5 delivery for nonempty carts and total use integer cents; discount rounds half up to match PHP `round()` for nonnegative values.
+
+## Stage 7 local receipt behavior
+
+- `LOCAL_MAIL_ENABLED` must equal `1`; `LOCAL_MAIL_TO` must be a valid local-domain address (`.test`, `.localhost`, `.local`, or `localhost`) and match `LOCAL_MAIL_ALLOWED_TO` case-insensitively.
+- SMTP host must be literal `127.0.0.1` or `::1`; the transport does not use TLS, authentication, public DNS or relay. Default feature state is disabled.
+- The message is plain text composed from the committed order/item snapshots. It uses the configured local inbox, never the checkout email. SMTP acceptance stamps `emailStatus: sent` and `emailSentAt`; a rejected handoff records `failed`; a concurrent send claim records `queued`; refresh/repeat processing reports `already_sent` only after a prior accepted handoff.
+- Mail is handed off after the order transaction commits. An SMTP failure does not undo the order. A transport acceptance followed by failure to persist the sent timestamp cannot provide exactly-once delivery; the implementation does not claim that guarantee.
 
 ## Stage 5 guest order access
 

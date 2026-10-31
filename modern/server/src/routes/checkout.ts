@@ -4,6 +4,7 @@ import { ApiError } from '../middleware/errors.js';
 import { cartDto, type CartMap } from '../cart/service.js';
 import { Order } from '../models/Order.js';
 import { createOrder, validateCheckout } from '../orders/checkout.js';
+import { sendLocalReceipt } from '../mail/receipt.js';
 
 export const checkoutRouter = Router();
 const sessionCart = (request: { session: { cart?: CartMap } }) => request.session.cart ?? {};
@@ -28,7 +29,21 @@ checkoutRouter.post('/checkout', requireCsrf, async (request, response) => {
     request.session.checkoutLast = { idempotencyKey: key, orderNumber: result.orderNumber, accessCode: result.accessCode };
     request.session.authorizedOrderNumbers = [...new Set([...(request.session.authorizedOrderNumbers ?? []), result.orderNumber])];
   }
-  response.status(result.created ? 201 : 200).json({ data: { orderNumber: result.orderNumber, status: 'ORDER_PLACED', confirmationUrl: `/confirmation/${result.orderNumber}` }, error: null });
+  let emailStatus: string;
+  if (result.created) {
+    try { emailStatus = await sendLocalReceipt(result.orderNumber); }
+    catch {
+      emailStatus = 'failed';
+      await Order.updateOne({ orderNumber: result.orderNumber, emailStatus: { $ne: 'sent' } }, { $set: { emailStatus } }).catch(() => undefined);
+    }
+  } else {
+    try {
+      const storedStatus = (await Order.findOne({ orderNumber: result.orderNumber }).select('emailStatus').lean())?.emailStatus ?? 'disabled';
+      emailStatus = storedStatus === 'sent' ? 'already_sent' : storedStatus;
+    }
+    catch { emailStatus = 'queued'; }
+  }
+  response.status(result.created ? 201 : 200).json({ data: { orderNumber: result.orderNumber, status: 'ORDER_PLACED', confirmationUrl: `/confirmation/${result.orderNumber}`, emailStatus }, error: null });
 });
 
 checkoutRouter.get('/orders/:orderNumber/confirmation', async (request, response) => {
@@ -41,5 +56,6 @@ checkoutRouter.get('/orders/:orderNumber/confirmation', async (request, response
   const initialCode = request.session.checkoutLast?.orderNumber === orderNumber ? request.session.checkoutLast.accessCode : undefined;
   if (initialCode) { delete request.session.checkoutLast?.accessCode; }
   response.setHeader('Cache-Control', 'no-store');
-  response.json({ data: { orderNumber, status: order.status, items: order.items, subtotalCents: order.subtotalCents, discountCents: order.discountCents, deliveryCents: order.deliveryCents, totalCents: order.totalCents, accessCode: initialCode ?? null, emailStatus: order.emailStatus }, error: null });
+  const emailStatus = order.emailStatus === 'sent' && !initialCode ? 'already_sent' : order.emailStatus;
+  response.json({ data: { orderNumber, status: order.status, items: order.items, subtotalCents: order.subtotalCents, discountCents: order.discountCents, deliveryCents: order.deliveryCents, totalCents: order.totalCents, accessCode: initialCode ?? null, emailStatus }, error: null });
 });

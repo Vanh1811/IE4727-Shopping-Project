@@ -36,6 +36,10 @@ npm run dev
 
 Open `http://127.0.0.1:5173`; the API is at `http://127.0.0.1:4000/api/v1`. Vite proxies `/api` to Express so browser requests share the frontend origin and session cookie. Use `127.0.0.1` consistently; do not mix it with `localhost` when testing cookies. The Stage 1 health endpoint returns 503 until MongoDB is connected.
 
+## Optional local receipt
+
+`LOCAL_MAIL_ENABLED` defaults to `0`. Keep it disabled unless the course-approved local inbox and a receiver bound to loopback are available. To enable the handoff, set the exact same allowed local recipient in `LOCAL_MAIL_TO` and `LOCAL_MAIL_ALLOWED_TO`, choose a `.test`, `.localhost`, `.local`, or `localhost` address, and keep `LOCAL_SMTP_HOST` at literal `127.0.0.1` or `::1`. Public SMTP hosts and customer checkout addresses are never used as recipients. A `.test` address does not by itself prevent SMTP relaying; configure the receiver to disable outbound relay. Review the repository's [`docs/local_email/README.md`](../../docs/local_email/README.md) and get lecturer approval before using a capture inbox such as Mailpit.
+
 ## Verification commands
 
 ```powershell

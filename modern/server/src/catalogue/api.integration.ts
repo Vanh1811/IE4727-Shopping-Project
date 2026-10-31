@@ -217,6 +217,8 @@ test('cart and checkout enforce CSRF, source validation, server totals, snapshot
   lifecycleFixture = { orderNumber: placed.data.orderNumber, itemId: saved.items[0]._id.toString(), guestCookie: cookie, guestCsrf: csrf };
   assert.equal(saved.items[0].quantity, 99);
   assert.equal(saved.items[0].unitPriceCents, sourceProduct.priceCents);
+  assert.equal(saved.emailStatus, 'disabled');
+  assert.equal(saved.emailSentAt, null);
   assert.match(saved.accessCodeHash, /^[a-f0-9]{64}$/);
   assert.notEqual(saved.accessCodeHash, '');
   assert.equal((await Product.updateOne({ _id: sourceProduct._id }, { $set: { priceCents: sourceProduct.priceCents + 100 } })).modifiedCount, 1);

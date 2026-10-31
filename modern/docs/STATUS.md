@@ -77,7 +77,19 @@ Baseline: `68545781decb4ac6bbebe50e1d592df287e74006` (`main` at kickoff). Branch
 - `npm run test:api`: BLOCKED — loopback `f2b_shop_modern_test` cannot connect (`ECONNREFUSED 127.0.0.1:27017`); the expanded session-isolation, wrong-code, generic-error and session-rotation assertions have not run.
 - Commit/push: PASS — `1c86ff6` (`feat(modern): implement guest order access and authorization`), pushed to `feature/modern-react-express-mongo`. Mongo privacy integration remains BLOCKED as recorded above.
 
-Stages 7–8 have not started. Each section will include implementation state, exact verification evidence, blockers and commit SHA.
+Stage 7 is complete; Stage 8 is in progress. Each section will include implementation state, exact verification evidence, blockers and commit SHA.
+
+## Stage 7 — course-compliant local-only receipt
+
+- Implementation: PASS — default-disabled local receipt, exact local recipient allowlist, literal loopback SMTP restriction, plain-text rendering from committed snapshots, atomic send claim/status timestamps, and post-commit non-gating handoff are implemented. Customer email is never used as the recipient.
+- `npm run build`: PASS.
+- `npm run typecheck`: PASS.
+- `npm run lint`: PASS (no warnings).
+- `npm run test`: PASS — 23 tests, including recipient/transport fail-closed checks, receipt text/totals/snapshot fields, and absence of customer email.
+- SMTP receiver / receipt inbox gate: BLOCKED — no local SMTP listener is available in this environment; no mail was sent. Mongo order persistence is also required to test the handoff status stamp.
+- `npm run test:e2e`: PASS — 5 browser checks (home, nested route refresh, empty cart, guest lookup URL privacy, staff-not-configured state); app ran without Mongo or SMTP.
+- `npm run test:api`: BLOCKED — Mongo test DB remains unavailable; integration coverage asserts disabled email state and will cover it once Mongo is running. No external SMTP was contacted.
+- Commit/push: pending.
 
 ## Stage 6 — staff, mock-ups and full lifecycle
 

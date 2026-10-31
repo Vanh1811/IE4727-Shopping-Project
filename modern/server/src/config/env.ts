@@ -5,6 +5,11 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(4000),
   MONGODB_URI: z.string().optional(),
   STAFF_PASSWORD_HASH: z.string().optional(),
+  LOCAL_MAIL_ENABLED: z.string().optional().default('0'),
+  LOCAL_MAIL_TO: z.string().optional(),
+  LOCAL_MAIL_ALLOWED_TO: z.string().optional(),
+  LOCAL_SMTP_HOST: z.string().optional().default('127.0.0.1'),
+  LOCAL_SMTP_PORT: z.coerce.number().int().min(1).max(65535).optional().default(1025),
   SESSION_SECRET: z.string().min(32),
   CLIENT_ORIGIN: z.string().url().default('http://127.0.0.1:5173'),
 }).superRefine((value, context) => {

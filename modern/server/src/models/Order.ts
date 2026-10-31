@@ -28,7 +28,8 @@ const orderSchema = new Schema({
   status: { type: String, required: true, enum: ['ORDER_PLACED', 'DESIGN_REVIEW', 'CHANGES_REQUESTED', 'CONFIRMED', 'PROCESSING', 'COMPLETED'], default: 'ORDER_PLACED' },
   accessCodeHash: { type: String, required: true, minlength: 64, maxlength: 64, unique: true },
   idempotencyKey: { type: String, required: true, maxlength: 80, unique: true },
-  emailStatus: { type: String, enum: ['disabled', 'failed', 'sent'], default: 'disabled' },
+  emailStatus: { type: String, enum: ['disabled', 'queued', 'failed', 'sent'], default: 'disabled' },
+  emailSentAt: { type: Date, default: null },
 }, { timestamps: true });
 
 orderSchema.index({ status: 1, createdAt: -1 });
