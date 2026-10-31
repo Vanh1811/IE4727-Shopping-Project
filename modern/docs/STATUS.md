@@ -115,4 +115,4 @@ Stage 7 implementation is complete. Stage 8 checks are recorded; its environment
 - PHP/MySQL differential testing and populated customer/staff journey screenshots: BLOCKED because the legacy runtime and MongoDB test service are unavailable. Existing PHP files and PHP E2E tests remain unchanged.
 - Local SMTP receipt acceptance remains BLOCKED; no receiver was running and no mail was sent. No real payment integration was added.
 - Stage 8 parity gate: BLOCKED pending MongoDB-backed journeys, local legacy comparison, and approved loopback SMTP verification.
-- Commit/push: pending.
+- Commit/push: PASS — `e1a34b8` (`test(modern): complete parity E2E and documentation`), pushed to `feature/modern-react-express-mongo`.
