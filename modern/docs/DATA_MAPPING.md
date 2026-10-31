@@ -19,4 +19,17 @@ Source schema: `database/schema.sql`; catalogue source: `database/f2b_product_se
 | `mockup_reviews` | `MockupReview` | Append-only order/revision decisions and timestamp. |
 | staff credentials/session | session only | No public user registration; configured password hash; Mongo-backed session storage. |
 
-The catalogue seed uses `INSERT INTO categories ... VALUES` and a multiline `INSERT INTO products` statement. No product count, category count, unique slug count, or image duplicate count is claimed until a proper parser/import or read-only MySQL export is run. Stage 2 must derive and report those counts from the source; fragile regex parsing is not an acceptable importer.
+The catalogue seed uses `INSERT INTO categories ... VALUES` and a multiline `INSERT INTO products` statement. Stage 2 parses the whole file with `node-sql-parser` in MySQL mode, then accepts only literal `INSERT` values for these two tables. It verifies six categories, 64 products, unique category/product IDs and slugs, valid category references, and one to four images per product.
+
+## Verified source seed snapshot
+
+Parsed from `database/f2b_product_seed.sql` on Stage 2:
+
+- Categories: **6** (`T-Shirts`, `Shirts`, `Hoodies & Sweatshirts`, `Jackets`, `Pants`, `Accessories`).
+- Products: **64**, legacy IDs 1–64; **16** marked new and **16** marked top selling.
+- Colours: **17** distinct stored values, preserved as written in SQL.
+- Product gallery URLs: **256** retained, **256 unique**, **0 duplicates**.
+- Price range: $24.90–$109.90; stored as integer cents.
+- Source note: the SQL seed explicitly labels prices illustrative and product metadata/photos as third-party. Its own comments say image contents/colour and live URL availability were not visually verified. The modern app preserves the source URLs and will show an image fallback on load failure; it does not claim those photographs are verified.
+
+The parser/unit checks are verified. Import into MongoDB and repeatability remain BLOCKED until a local Mongo replica set is running.

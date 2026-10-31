@@ -8,7 +8,8 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint src",
-    "test": "node --test dist/*.test.js",
+    "test": "node --test dist/**/*.test.js",
+    "test:api": "node --test dist/catalogue/api.integration.js",
     "db:preflight": "node dist/scripts/db-preflight.js",
     "db:seed": "node dist/scripts/seed.js"
   },
@@ -20,6 +21,7 @@
     "express-session": "1.18.2",
     "helmet": "8.1.0",
     "mongoose": "8.16.1",
+    "node-sql-parser": "5.4.0",
     "zod": "3.25.67"
   },
   "devDependencies": {

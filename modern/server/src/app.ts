@@ -7,6 +7,7 @@ import { env, sessionSecret } from './config/env.js';
 import { errorHandler, notFound } from './middleware/errors.js';
 import { healthRouter } from './routes/health.js';
 import { sessionRouter } from './routes/session.js';
+import { catalogueRouter } from './routes/catalogue.js';
 
 export function createApp() {
   const app = express();
@@ -27,6 +28,7 @@ export function createApp() {
   // Readiness is public and must remain inspectable while the DB-backed
   // session store is disconnected.
   app.use('/api/v1', healthRouter);
+  app.use('/api/v1', catalogueRouter);
 
   app.use(session({
     name: 'f2b.sid',

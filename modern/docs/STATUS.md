@@ -22,8 +22,23 @@ Baseline: `68545781decb4ac6bbebe50e1d592df287e74006` (`main` at kickoff). Branch
 - Live frontend/API: PASS — `http://127.0.0.1:5173` served the React page (HTTP 200); `http://127.0.0.1:4000/api/v1/health` returned sanitized 503 with `database: not_configured` when Mongo was absent.
 - Mongo replica-set connection and `npm run db:preflight`: BLOCKED — connection refused at `127.0.0.1:27017`; no local MongoDB server is running. The executable installation state is unknown. Mongoose transactional stages and persistent session behavior remain unverified.
 - Legacy PHP/MySQL/browser checks: not run; PHP and MongoDB executables are unavailable on PATH.
-- Commit: `chore(modern): scaffold React 19 Express 5 and Mongo stack` (this checkpoint); push: pending.
+- Commit/push: PASS — `75ed108e6b02ea04e90d22d8e3ebad1b00e57409` (`chore(modern): scaffold React 19 Express 5 and Mongo stack`).
+
+## Stage 2 — verified catalogue and public API
+
+- SQL source parsing: PASS — `node-sql-parser` 5.4.0 parses the complete MySQL seed and extracts literal category/product inserts.
+- Source snapshot: PASS — 6 categories, 64 products, 17 colours, 16 new, 16 top-selling; 256 image URLs retained, 256 unique, 0 duplicates; prices $24.90–$109.90.
+- Mongoose catalogue models/indexes and guarded idempotent seed script: implemented; seed is restricted to loopback MongoDB database `f2b_shop_modern`.
+- Public endpoints implemented: `/api/v1/catalogue/meta`, `/api/v1/products`, `/api/v1/products/:id` (legacy ID or slug), `/api/v1/home`.
+- `npm run build`: PASS (Express TypeScript + Vite production build).
+- `npm run typecheck`: PASS (server and client).
+- `npm run lint`: PASS (server and client).
+- `npm run test`: PASS — 8 tests (4 foundation API checks, 4 seed/filter/sort unit checks).
+- `npm run test:api`: BLOCKED — integration suite targets only loopback `f2b_shop_modern_test`; connection refused at `127.0.0.1:27017`. The suite reports the dependency blocker and does not clean or alter any non-test DB.
+- `npm run db:seed`: BLOCKED — SQL parsing/validation completes, then Mongo connection is refused at `127.0.0.1:27017`; no database writes occurred.
+- Catalogue API behavior against persisted Mongo data, idempotent seed replay, and exact returned sort/filter combinations remain unverified until the replica set is available.
+- Commit/push: pending — `feat(modern-api): migrate catalogue and expose product endpoints`.
 
 ## Later stages
 
-Stages 2–8 have not started. Each section will include implementation state, exact verification evidence, blockers and commit SHA.
+Stages 3–8 have not started. Each section will include implementation state, exact verification evidence, blockers and commit SHA.
