@@ -37,8 +37,21 @@ Baseline: `68545781decb4ac6bbebe50e1d592df287e74006` (`main` at kickoff). Branch
 - `npm run test:api`: BLOCKED — integration suite targets only loopback `f2b_shop_modern_test`; connection refused at `127.0.0.1:27017`. The suite reports the dependency blocker and does not clean or alter any non-test DB.
 - `npm run db:seed`: BLOCKED — SQL parsing/validation completes, then Mongo connection is refused at `127.0.0.1:27017`; no database writes occurred.
 - Catalogue API behavior against persisted Mongo data, idempotent seed replay, and exact returned sort/filter combinations remain unverified until the replica set is available.
-- Commit/push: pending — `feat(modern-api): migrate catalogue and expose product endpoints`.
+- Commit/push: PASS — `32307fc8e1147a024dd6045490a0d267555d6465` (`feat(modern-api): migrate catalogue and expose product endpoints`). Mongo verification remains blocked as recorded above.
+
+## Stage 3 — home, catalogue and product experience
+
+- Implementation: PASS — React routes render the editorial home, query-backed shop grid/filter sidebar, and product detail/gallery. All catalogue content and stats come from the Stage 2 APIs; product cards retain the original gallery URLs and show a neutral unavailable state if an image fails.
+- Parity: PASS for reviewed copy, hero/category assets, source palette, repeated `category`/`colour` query keys, `search`/`q`, `min_price`/`max_price`, sort keys, product IDs and legacy size choices. Shop state stays in the URL for refresh and browser navigation.
+- Accessibility and responsive behavior: semantic headings/landmarks, labeled filters and quantity, button states for gallery/size, responsive grids, and reduced-motion global CSS are present.
+- `npm run build`: PASS.
+- `npm run typecheck`: PASS.
+- `npm run lint`: PASS (no warnings).
+- `npm run test`: PASS — 8 server/foundation/parser/filter tests.
+- `npm run test:e2e`: PASS — 2 browser checks (home brand/hero and shop deep-link refresh) using the existing Chromium 1248 executable. The local test server ran with Mongo unset; pages were checked through their loading state, not seeded product rendering.
+- Mongo-backed page data and visual comparison with the PHP site: BLOCKED — no local MongoDB service/seed and no legacy PHP browser session; see Stage 0 and Stage 2 notes.
+- Commit/push: pending.
 
 ## Later stages
 
-Stages 3–8 have not started. Each section will include implementation state, exact verification evidence, blockers and commit SHA.
+Stages 4–8 have not started. Each section will include implementation state, exact verification evidence, blockers and commit SHA.

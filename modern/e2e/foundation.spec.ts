@@ -7,8 +7,9 @@ test('modern home renders the F2B brand and legacy hero asset', async ({ page })
 });
 
 test('nested client route refreshes to the application', async ({ page }) => {
-  await page.goto('/shop');
-  await expect(page.getByRole('heading', { name: 'Shop' })).toBeVisible();
+  await page.goto('/shop?category=t-shirts&sort=newest');
+  await expect(page.getByRole('heading', { name: 'Shop all' })).toBeVisible();
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Shop' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Shop all' })).toBeVisible();
+  await expect(page).toHaveURL(/category=t-shirts.*sort=newest/);
 });

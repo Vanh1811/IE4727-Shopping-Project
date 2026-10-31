@@ -31,3 +31,10 @@ All API routes are prefixed `/api/v1`; errors use JSON and never fall through to
 - API routes are mounted before any client fallback. Stage 1 has no catch-all SPA route in Express; Vite handles its own dev fallback.
 
 Cart, order, mock-up and staff endpoints will be added in their owning stages.
+
+## Stage 3 storefront behavior
+
+- The React home reads stats and featured product groups from `GET /home`; it does not embed a second catalogue copy.
+- The shop reads `GET /catalogue/meta` and `GET /products`; selections are kept in the URL with repeated `category` and `colour` keys and legacy `search`/`q`, price, and sort parameter names.
+- Product cards and detail pages use `GET /products/:id` with the source legacy numeric ID. Detail galleries keep the original SQL image URL order. A failed source image is labeled as unavailable instead of substituted with a different item.
+- Cart mutation and payment remain out of scope for this stage; the product action asks for size and does not claim a cart write succeeded.

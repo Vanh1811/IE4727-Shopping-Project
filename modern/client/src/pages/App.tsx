@@ -1,91 +1,75 @@
-import { Link, Route, Routes } from 'react-router-dom';
+import { useState, type FormEvent } from 'react';
+import { Link, NavLink, Route, Routes, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { api, money, type CatalogueMeta, type HomeData, type Product, type ProductList } from '../lib/api';
+import { LoadState, ProductGrid } from '../components/Catalogue';
+import { useLoad } from '../lib/useLoad';
+
+function SiteHeader() {
+  const [search, setSearch] = useState('');
+  const navigate = useNavigate();
+  function submit(event: FormEvent) { event.preventDefault(); const value = search.trim(); navigate(value ? `/shop?search=${encodeURIComponent(value)}` : '/shop'); }
+  const navClass = ({ isActive }: { isActive: boolean }) => `transition hover:text-accent ${isActive ? 'text-accent' : 'text-ink'}`;
+  return <header className="sticky top-0 z-20 border-b border-border/80 bg-paper/95 backdrop-blur">
+    <div className="mx-auto flex min-h-20 max-w-container items-center justify-between gap-5 px-5 sm:px-6">
+      <Link className="flex shrink-0 items-center gap-3 font-semibold tracking-wide text-ink" to="/"><span className="grid size-10 place-items-center rounded-full bg-ink text-xs text-paper">F2B</span><span className="hidden sm:inline">F2B SHOP</span></Link>
+      <nav aria-label="Primary navigation" className="flex items-center gap-4 text-sm sm:gap-6"><NavLink className={navClass} to="/shop">Shop</NavLink><a className="hidden hover:text-accent sm:inline" href="/shop?sort=newest">New arrivals</a><a className="hidden hover:text-accent md:inline" href="/#styles">Styles</a></nav>
+      <div className="flex items-center gap-4"><form onSubmit={submit} role="search" className="hidden items-center border-b border-border md:flex"><label className="sr-only" htmlFor="site-search">Search products</label><input id="site-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search" className="w-28 bg-transparent py-2 text-sm outline-none placeholder:text-muted focus:w-40"/><button aria-label="Submit search" className="px-1 text-muted hover:text-accent">⌕</button></form><Link className="text-sm text-ink hover:text-accent" to="/cart">Bag</Link><Link className="hidden text-sm text-ink hover:text-accent sm:inline" to="/orders">Account</Link></div>
+    </div>
+  </header>;
+}
 
 function HomePage() {
-  return (
-    <main className="mx-auto flex min-h-[70vh] w-full max-w-container items-center px-6 py-16">
-      <section className="grid w-full items-center gap-12 md:grid-cols-[1fr_0.85fr]">
-        <div>
-          <p className="mb-5 text-xs font-semibold uppercase tracking-[0.18em] text-accent">
-            F2B SHOP / The everyday edit
-          </p>
-          <h1 className="font-display text-6xl leading-[0.98] tracking-[-0.045em] text-ink sm:text-7xl">
-            Wear your <span className="italic text-accent">style.</span>
-          </h1>
-          <p className="mt-6 max-w-xl text-lg leading-8 text-muted">
-            Modern essentials and expressive layers for the way you move, made to help every outfit feel like your own.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center gap-6">
-            <Link className="rounded-sm bg-ink px-6 py-3 text-sm font-semibold text-paper transition hover:bg-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent" to="/shop">
-              Shop now <span aria-hidden="true">→</span>
-            </Link>
-            <a className="text-sm font-semibold text-ink underline decoration-border underline-offset-4 hover:decoration-accent" href="#about">
-              Explore the edit <span aria-hidden="true">↓</span>
-            </a>
-          </div>
-          <p className="mt-12 text-sm text-muted">Modern storefront foundation · catalogue connection arrives in Stage 2.</p>
-        </div>
-        <div className="relative overflow-hidden rounded-editorial bg-surface">
-          <img className="aspect-[4/5] w-full object-cover" src="/images/branding/hero-fashion.jpg" alt="Model in a neutral outfit seated beside a studio window" />
-          <div className="absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-ink/65 to-transparent p-6 pt-16 text-paper">
-            <span className="text-[0.65rem] font-semibold uppercase tracking-[0.18em]">F2B SHOP / 01</span>
-            <span className="font-display text-xl italic">Everyday, reimagined.</span>
-          </div>
-        </div>
-      </section>
-    </main>
-  );
+  const { data, error, retry } = useLoad<HomeData>(api.home);
+  return <main>
+    <section className="mx-auto grid min-h-[600px] max-w-container items-center gap-10 px-5 py-12 sm:px-6 md:grid-cols-[1fr_0.85fr] md:py-16">
+      <div className="py-6"><p className="mb-5 text-xs font-semibold uppercase tracking-[0.18em] text-accent">F2B SHOP / The everyday edit</p><h1 className="font-display text-6xl leading-[0.98] tracking-[-0.045em] text-ink sm:text-7xl">Wear your <span className="italic text-accent">style.</span></h1><p className="mt-6 max-w-xl text-lg leading-8 text-muted">Modern essentials and expressive layers for the way you move, made to help every outfit feel like your own.</p><div className="mt-8 flex flex-wrap items-center gap-6"><Link className="rounded-sm bg-ink px-6 py-3 text-sm font-semibold text-paper transition hover:bg-accent" to="/shop">Shop now <span aria-hidden="true">→</span></Link><a className="text-sm font-semibold text-ink underline decoration-border underline-offset-4 hover:decoration-accent" href="#styles">Explore the edit <span aria-hidden="true">↓</span></a></div><div className="mt-12 grid max-w-md grid-cols-3 gap-5 border-t border-border pt-5 text-sm"><div><b className="block text-xl text-ink">{data?.stats.products ?? '—'}</b><span className="text-muted">styles to explore</span></div><div><b className="block text-xl text-ink">{data?.stats.categories ?? '—'}</b><span className="text-muted">categories</span></div><div><b className="block text-xl text-ink">{data?.stats.averageRating?.toFixed(1) ?? '—'}</b><span className="text-muted">average rating</span></div></div></div>
+      <div className="relative overflow-hidden rounded-editorial bg-surface"><img className="aspect-[4/5] w-full object-cover" src="/images/branding/hero-fashion.jpg" alt="Model in a neutral outfit seated beside a studio window"/><div className="absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-ink/65 to-transparent p-6 pt-16 text-paper"><span className="text-[0.65rem] font-semibold uppercase tracking-[0.18em]">F2B SHOP / 01</span><span className="font-display text-xl italic">Everyday, reimagined.</span></div></div>
+    </section>
+    <div className="overflow-hidden border-y border-border bg-paper py-5"><div className="mx-auto flex max-w-container justify-around gap-6 px-6 text-xs font-semibold uppercase tracking-[0.16em] text-muted"><span>Original by design</span><span>Made for every day</span><span>Made to be yours</span></div></div>
+    <section className="mx-auto max-w-container px-5 py-16 sm:px-6"><div className="mb-8 flex items-end justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">The latest</p><h2 className="mt-2 font-display text-4xl text-ink">New arrivals</h2></div><Link className="text-sm font-semibold text-ink underline underline-offset-4 hover:text-accent" to="/shop?sort=newest">Shop all</Link></div>{error ? <LoadState error={error} retry={retry}/> : data ? <ProductGrid products={data.newArrivals}/> : <p className="py-10 text-sm text-muted" aria-live="polite">Loading the latest styles…</p>}</section>
+    <section className="bg-surface py-16"><div className="mx-auto max-w-container px-5 sm:px-6"><div className="mb-8 flex items-end justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">Loved by you</p><h2 className="mt-2 font-display text-4xl text-ink">Top selling</h2></div><Link className="text-sm font-semibold text-ink underline underline-offset-4 hover:text-accent" to="/shop">Shop all</Link></div>{error ? <LoadState error={error} retry={retry}/> : data ? <ProductGrid products={data.topSelling}/> : <p className="py-10 text-sm text-muted" aria-live="polite">Loading customer favourites…</p>}</div></section>
+    <section id="styles" className="mx-auto max-w-container px-5 py-16 sm:px-6"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">Find your fit</p><h2 className="mb-8 mt-2 font-display text-4xl text-ink">Browse by style</h2><div className="grid grid-cols-2 gap-4 md:grid-cols-4">{[['Casual','t-shirts','casual-fashion.jpg'],['Formal','shirts','formal-fashion.jpg'],['Party','jackets','party-fashion.jpg'],['Gym','hoodies','gym-fashion.jpg']].map(([label, category, image]) => <Link key={category} to={`/shop?category=${category}`} className="group relative overflow-hidden bg-surface"><img className="aspect-[4/5] w-full object-cover transition duration-500 group-hover:scale-[1.03]" src={`/images/categories/${image}`} alt="" loading="lazy"/><span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/70 to-transparent px-4 pb-4 pt-12 font-display text-2xl text-paper">{label}</span></Link>)}</div></section>
+  </main>;
 }
 
-function PlaceholderPage({ title }: { title: string }) {
-  return (
-    <main className="mx-auto min-h-[70vh] w-full max-w-container px-6 py-16">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">F2B SHOP</p>
-      <h1 className="mt-3 font-display text-5xl text-ink">{title}</h1>
-      <p className="mt-5 text-muted">This page will be connected to the verified legacy catalogue in a later stage.</p>
-    </main>
-  );
+function ShopPage() {
+  const [params, setParams] = useSearchParams();
+  const queryKey = params.toString();
+  const requestQuery = new URLSearchParams(params); requestQuery.delete('page');
+  const products = useLoad<ProductList>(() => api.products(requestQuery), [queryKey]);
+  const meta = useLoad<CatalogueMeta>(api.meta);
+  const update = (key: string, value: string, multi = false) => {
+    const next = new URLSearchParams(params); next.delete('page');
+    if (multi) { const existing = next.getAll(key); next.delete(key); (existing.includes(value) ? existing.filter((item) => item !== value) : [...existing, value]).forEach((item) => next.append(key, item)); }
+    else if (value) next.set(key, value); else next.delete(key);
+    setParams(next);
+  };
+  const categories = meta.data?.categories ?? [];
+  const colours = meta.data?.colours ?? [];
+  return <main className="mx-auto min-h-[70vh] max-w-container px-5 py-12 sm:px-6"><div className="mb-9"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">F2B SHOP / The collection</p><h1 className="mt-2 font-display text-5xl text-ink">Shop all</h1></div>
+    {products.error ? <LoadState error={products.error} retry={products.retry}/> : <div className="grid gap-8 lg:grid-cols-[230px_1fr]"><aside aria-label="Product filters" className="space-y-7 border-b border-border pb-6 lg:border-b-0 lg:border-r lg:pr-7">
+      <label className="block text-xs font-semibold uppercase tracking-wider text-ink">Search<input value={params.get('search') ?? params.get('q') ?? ''} onChange={(event) => update('search', event.target.value)} placeholder="What are you looking for?" className="mt-2 w-full rounded-sm border border-border bg-paper px-3 py-2 text-sm font-normal normal-case tracking-normal"/></label>
+      <fieldset><legend className="mb-3 text-xs font-semibold uppercase tracking-wider text-ink">Category</legend><div className="space-y-2">{categories.map((category) => <label key={category.slug} className="flex items-center gap-2 text-sm text-muted"><input type="checkbox" checked={params.getAll('category').includes(category.slug)} onChange={() => update('category', category.slug, true)}/>{category.name}</label>)}</div></fieldset>
+      <fieldset><legend className="mb-3 text-xs font-semibold uppercase tracking-wider text-ink">Colour</legend><div className="max-h-48 space-y-2 overflow-auto">{colours.map((colour) => <label key={colour} className="flex items-center gap-2 text-sm text-muted"><input type="checkbox" checked={params.getAll('colour').includes(colour)} onChange={() => update('colour', colour, true)}/>{colour}</label>)}</div></fieldset>
+      <fieldset><legend className="mb-3 text-xs font-semibold uppercase tracking-wider text-ink">Price (SGD)</legend><div className="flex gap-2"><label className="sr-only" htmlFor="min-price">Minimum price</label><input id="min-price" inputMode="decimal" placeholder="Min" defaultValue={params.get('min_price') ?? ''} key={`min-${queryKey}`} onBlur={(event) => update('min_price', event.target.value)} className="w-1/2 rounded-sm border border-border bg-paper px-2 py-2 text-sm"/><label className="sr-only" htmlFor="max-price">Maximum price</label><input id="max-price" inputMode="decimal" placeholder="Max" defaultValue={params.get('max_price') ?? ''} key={`max-${queryKey}`} onBlur={(event) => update('max_price', event.target.value)} className="w-1/2 rounded-sm border border-border bg-paper px-2 py-2 text-sm"/></div><p className="mt-2 text-xs text-muted">Range ${meta.data?.priceFloor ?? 0}–${meta.data?.priceCeiling ?? 200}</p></fieldset>
+      <button onClick={() => setParams(new URLSearchParams())} className="text-sm font-semibold text-accent underline underline-offset-4">Clear filters</button>
+    </aside><section><div className="mb-5 flex flex-wrap items-center justify-between gap-4"><p className="text-sm text-muted">{products.data ? `${products.data.pagination.total} styles` : 'Loading styles…'}</p><label className="text-sm text-muted">Sort by <select value={params.get('sort') ?? 'featured'} onChange={(event) => update('sort', event.target.value)} className="ml-2 rounded-sm border border-border bg-paper px-2 py-2 text-ink"><option value="featured">Featured</option><option value="newest">Newest</option><option value="price_asc">Price: low to high</option><option value="price_desc">Price: high to low</option></select></label></div>{products.data?.filters.notice && <p role="status" className="mb-4 text-sm text-accent">{products.data.filters.notice}</p>}{products.data && products.data.items.length > 0 ? <ProductGrid products={products.data.items}/> : products.data ? <p className="border border-border bg-paper px-6 py-12 text-center text-muted">No products match those filters.</p> : <p className="py-12 text-sm text-muted" aria-live="polite">Loading styles…</p>}</section></div>}
+  </main>;
 }
+
+function ProductPage() {
+  const { id = '' } = useParams();
+  const { data, error, retry } = useLoad<Product>(() => api.product(id), [id]);
+  const [imageIndex, setImageIndex] = useState(0); const [size, setSize] = useState(''); const [quantity, setQuantity] = useState(1); const [notice, setNotice] = useState('');
+  if (error) return <main className="mx-auto max-w-container px-5 py-12 sm:px-6"><LoadState error={error} retry={retry}/></main>;
+  if (!data) return <main className="mx-auto max-w-container px-5 py-16 text-sm text-muted sm:px-6" aria-live="polite">Loading product…</main>;
+  const sizes = data.categorySlug === 'accessories' ? ['ONE SIZE'] : ['S','M','L','XL'];
+  const image = data.images[imageIndex] ?? data.image;
+  return <main className="mx-auto grid max-w-container gap-10 px-5 py-10 sm:px-6 md:grid-cols-2 md:py-14"><section><img className="aspect-[4/5] w-full bg-surface object-cover" src={image} alt={`${data.name}${imageIndex ? `, view ${imageIndex + 1}` : ''}`} onError={(event) => { event.currentTarget.alt = 'Product image unavailable'; event.currentTarget.removeAttribute('src'); event.currentTarget.className = 'aspect-[4/5] w-full bg-surface object-contain'; }}/><div className="mt-3 grid grid-cols-4 gap-3">{data.images.map((src,index) => <button key={`${src}-${index}`} onClick={() => setImageIndex(index)} aria-label={`View product image ${index + 1}`} aria-pressed={imageIndex === index} className={`overflow-hidden border ${imageIndex === index ? 'border-accent' : 'border-border'}`}><img className="aspect-square w-full object-cover" src={src} alt="" loading="lazy"/></button>)}</div></section><section className="py-2"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">{data.category} / {data.colour}</p><h1 className="mt-3 font-display text-4xl leading-tight text-ink sm:text-5xl">{data.name}</h1><div className="mt-4 flex items-center gap-3"><span className="text-lg font-semibold text-ink">{money(data.priceCents)}</span>{data.originalPriceCents !== null && <><del className="text-sm text-muted">{money(data.originalPriceCents)}</del><span className="text-xs font-semibold text-accent">{data.discountPercent}% off</span></>}</div><p className="mt-3 text-sm text-muted">{'★'.repeat(data.starCount)}{'☆'.repeat(5-data.starCount)} <span className="ml-1">{data.rating.toFixed(1)} ({data.reviewCount} reviews)</span></p><p className="mt-7 whitespace-pre-line text-sm leading-7 text-muted">{data.description}</p><fieldset className="mt-8"><legend className="mb-3 text-xs font-semibold uppercase tracking-wider text-ink">Size {size && <span className="normal-case tracking-normal text-muted">· {size}</span>}</legend><div className="flex gap-2">{sizes.map((value) => <button key={value} onClick={() => {setSize(value);setNotice('');}} aria-pressed={size===value} className={`min-w-12 border px-4 py-3 text-sm ${size===value?'border-ink bg-ink text-paper':'border-border bg-paper text-ink hover:border-ink'}`}>{value}</button>)}</div></fieldset><label className="mt-6 block text-xs font-semibold uppercase tracking-wider text-ink">Quantity<select value={quantity} onChange={(event) => setQuantity(Number(event.target.value))} className="ml-4 border border-border bg-paper px-3 py-2 text-sm font-normal tracking-normal">{Array.from({length:99},(_,i)=><option key={i+1} value={i+1}>{i+1}</option>)}</select></label><button className="mt-8 w-full bg-ink px-6 py-4 text-sm font-semibold uppercase tracking-wider text-paper hover:bg-accent" onClick={() => setNotice(size ? 'Your selection is ready. Bag functionality is coming in the next stage.' : 'Choose a size to continue.')}>Add to bag</button>{notice && <p role="status" className="mt-3 text-sm text-accent">{notice}</p>}</section></main>;
+}
+
+function PlaceholderPage({ title }: { title: string }) { return <main className="mx-auto min-h-[70vh] w-full max-w-container px-6 py-16"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">F2B SHOP</p><h1 className="mt-3 font-display text-5xl text-ink">{title}</h1><p className="mt-5 text-muted">This part of the shop is being prepared.</p></main>; }
 
 export default function App() {
-  return (
-    <div className="flex min-h-screen flex-col bg-background text-text">
-      <a className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-paper focus:p-3" href="#main">
-        Skip to main content
-      </a>
-      <header className="sticky top-0 z-20 border-b border-border/80 bg-paper/90 backdrop-blur">
-        <div className="mx-auto flex min-h-20 max-w-container items-center justify-between px-6">
-          <Link className="flex items-center gap-3 font-semibold tracking-wide text-ink" to="/">
-            <span className="grid size-10 place-items-center rounded-full bg-ink text-xs text-paper">F2B</span>
-            <span>F2B SHOP</span>
-          </Link>
-          <nav aria-label="Primary navigation" className="flex items-center gap-6 text-sm">
-            <Link className="hover:text-accent" to="/shop">Shop</Link>
-            <Link className="hover:text-accent" to="/cart">Bag</Link>
-            <Link className="hover:text-accent" to="/orders">Account</Link>
-          </nav>
-        </div>
-      </header>
-      <div id="main" className="flex-1">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/shop" element={<PlaceholderPage title="Shop" />} />
-          <Route path="/cart" element={<PlaceholderPage title="Your bag" />} />
-          <Route path="/orders" element={<PlaceholderPage title="Order status" />} />
-          <Route path="*" element={<PlaceholderPage title="Page not found" />} />
-        </Routes>
-      </div>
-      <footer id="about" className="border-t border-border bg-ink text-paper">
-        <div className="mx-auto grid max-w-container gap-8 px-6 py-10 sm:grid-cols-2">
-          <div>
-            <p className="font-semibold tracking-wide">F2B SHOP</p>
-            <p className="mt-2 max-w-md text-sm text-paper/75">Thoughtful essentials and expressive pieces for every version of you.</p>
-          </div>
-          <div className="sm:text-right">
-            <p className="text-sm text-paper/75">Modern Version — parallel to the PHP/MySQL Base Version.</p>
-            <p className="mt-2 text-xs text-paper/60">No payment processing is connected.</p>
-          </div>
-        </div>
-      </footer>
-    </div>
-  );
+  return <div className="flex min-h-screen flex-col bg-background text-text"><a className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-paper focus:p-3" href="#main">Skip to main content</a><SiteHeader/><div id="main" className="flex-1"><Routes><Route path="/" element={<HomePage/>}/><Route path="/shop" element={<ShopPage/>}/><Route path="/product/:id" element={<ProductPage/>}/><Route path="/cart" element={<PlaceholderPage title="Your bag"/>}/><Route path="/orders" element={<PlaceholderPage title="Order status"/>}/><Route path="*" element={<PlaceholderPage title="Page not found"/>}/></Routes></div><footer id="about" className="border-t border-border bg-ink text-paper"><div className="mx-auto grid max-w-container gap-8 px-6 py-10 sm:grid-cols-2"><div><p className="font-semibold tracking-wide">F2B SHOP</p><p className="mt-2 max-w-md text-sm text-paper/75">Thoughtful essentials and expressive pieces for every version of you.</p></div><div className="sm:text-right"><p className="text-sm text-paper/75">Modern Version — parallel to the PHP/MySQL Base Version.</p><p className="mt-2 text-xs text-paper/60">No payment processing is connected.</p></div></div></footer></div>;
 }
