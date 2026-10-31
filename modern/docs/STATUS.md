@@ -64,6 +64,6 @@ Baseline: `68545781decb4ac6bbebe50e1d592df287e74006` (`main` at kickoff). Branch
 - `npm run test:e2e`: PASS — 3 browser checks (home/hero, filtered shop refresh, empty cart and continue-shopping link). Test server ran without Mongo; no order or product fixture was available in browser.
 - `npm run test:api` against loopback `f2b_shop_modern_test`: BLOCKED — `ECONNREFUSED 127.0.0.1:27017`. The guarded suite now includes CSRF, cart quantities/limits, checkout validation, snapshot after product price edit, order idempotency, cart clearing and one-time guest code; none of its Mongo assertions ran.
 - Mongo replica-set transaction behavior, order persistence, and failed-transaction cart retention: BLOCKED until the local MongoDB replica set is started.
-- Commit/push: pending.
+- Commit/push: PASS — `c5432e8` (`feat(modern): port cart checkout and guest confirmation`), pushed to `feature/modern-react-express-mongo`. Mongo persistence gate remains BLOCKED as recorded above.
 
 Stages 5–8 have not started. Each section will include implementation state, exact verification evidence, blockers and commit SHA.
