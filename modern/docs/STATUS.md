@@ -22,6 +22,7 @@ Baseline: `68545781decb4ac6bbebe50e1d592df287e74006` (`main` at kickoff). Source
 - Stage A `npm run test:api`: BLOCKED — the legacy integration harness still requires MongoDB (`ECONNREFUSED 127.0.0.1:27017`) and MySQL test credentials; it will be replaced during Stage F.
 - Stage A MySQL schema/session integration: BLOCKED until valid local credentials are placed in ignored `server/.env`; do not paste credentials into chat or commit them. `db:init` was not run and no schema was created.
 - Current phase: Stage A code complete; database-backed verification awaits local MySQL authentication. Stages B–F are next.
+- Stage A commit/push: PASS — `979ae2a` (`feat(modern): introduce MySQL schema and session foundation`), pushed to `feature/modern-express-mysql`.
 
 ## Stage 0 — baseline and parity contract
 
