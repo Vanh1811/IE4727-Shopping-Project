@@ -41,7 +41,7 @@ The checks were run with npm cache/temp redirected under ignored `modern/node_mo
 - Stage C checkout/orders: `e795366` — `refactor(modern): port checkout and order access to MySQL`
 - Stage D staff/mock-ups: `227d2b7` — `refactor(modern): port staff mockup workflow to MySQL`
 - Stage E local receipt: `a57e166` — `refactor(modern): preserve local receipts in MySQL`
-- Stage F cleanup/docs: recorded in the final commit following this report.
+- Stage F cleanup/docs: `5877236` — `test(modern): remove Mongo and finalize MySQL migration`.
 
 All commits were pushed only to `feature/modern-express-mysql`. No pull request was created or merged.
 
