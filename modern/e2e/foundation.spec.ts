@@ -34,3 +34,11 @@ test('staff sign-in clearly reports when no local password hash is configured', 
   await expect(page.getByRole('heading', { name: 'Staff access' })).toBeVisible();
   await expect(page.getByText('Staff access is not configured on this server.')).toBeVisible();
 });
+
+test('keyboard users can reach and activate the skip-to-content link', async ({ page }) => {
+  await page.goto('/');
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/#main$/);
+});

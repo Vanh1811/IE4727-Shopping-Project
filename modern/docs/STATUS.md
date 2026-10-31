@@ -77,7 +77,7 @@ Baseline: `68545781decb4ac6bbebe50e1d592df287e74006` (`main` at kickoff). Branch
 - `npm run test:api`: BLOCKED — loopback `f2b_shop_modern_test` cannot connect (`ECONNREFUSED 127.0.0.1:27017`); the expanded session-isolation, wrong-code, generic-error and session-rotation assertions have not run.
 - Commit/push: PASS — `1c86ff6` (`feat(modern): implement guest order access and authorization`), pushed to `feature/modern-react-express-mongo`. Mongo privacy integration remains BLOCKED as recorded above.
 
-Stage 7 is complete; Stage 8 is in progress. Each section will include implementation state, exact verification evidence, blockers and commit SHA.
+Stage 7 implementation is complete. Stage 8 checks are recorded; its environment-dependent parity gates remain blocked. Each section includes evidence, blockers and commit SHA.
 
 ## Stage 7 — course-compliant local-only receipt
 
@@ -89,7 +89,7 @@ Stage 7 is complete; Stage 8 is in progress. Each section will include implement
 - SMTP receiver / receipt inbox gate: BLOCKED — no local SMTP listener is available in this environment; no mail was sent. Mongo order persistence is also required to test the handoff status stamp.
 - `npm run test:e2e`: PASS — 5 browser checks (home, nested route refresh, empty cart, guest lookup URL privacy, staff-not-configured state); app ran without Mongo or SMTP.
 - `npm run test:api`: BLOCKED — Mongo test DB remains unavailable; integration coverage asserts disabled email state and will cover it once Mongo is running. No external SMTP was contacted.
-- Commit/push: pending.
+- Commit/push: PASS — `6a3f096` (`feat(modern): add allowlisted local order receipt`), pushed to `feature/modern-react-express-mongo`.
 
 ## Stage 6 — staff, mock-ups and full lifecycle
 
@@ -102,3 +102,17 @@ Stage 7 is complete; Stage 8 is in progress. Each section will include implement
 - `npm run test:api` against loopback `f2b_shop_modern_test`: BLOCKED — `ECONNREFUSED 127.0.0.1:27017`. The four guarded suites include catalogue, cart/checkout, guest session isolation, staff login, first publish, change request, stale revision rejection, revision publish, customer approval, staff processing/completion, and invalid transition. None of these persistent assertions ran.
 - Full staff–customer–staff lifecycle, transaction behavior, and order/mock-up persistence: BLOCKED until the local MongoDB replica set is available.
 - Commit/push: PASS — `46f31b7` (`feat(modern): port staff mockup and review workflow`), pushed to `feature/modern-react-express-mongo`. Mongo lifecycle gate remains BLOCKED as recorded above.
+
+## Stage 8 — parity QA, Playwright and final documentation
+
+- `npm run build`: PASS.
+- `npm run typecheck`: PASS.
+- `npm run lint`: PASS.
+- `npm run test`: PASS — 23 tests, 0 failures.
+- Playwright: PASS — 6 browser tests, including keyboard activation of skip-to-main. Modern home captures at 1440×900 and 390×844 were reviewed in `docs/parity-screenshots/`; API-backed shelves remain in loading state without MongoDB.
+- `npm run test:api`: BLOCKED — all four integration groups fail at `ECONNREFUSED 127.0.0.1:27017`; no MongoDB replica set is available.
+- Base/Modern locations are documented in the root README. `docs/PARITY_RESULTS.md` records evidence, screenshots, remaining gaps and exact blockers.
+- PHP/MySQL differential testing and populated customer/staff journey screenshots: BLOCKED because the legacy runtime and MongoDB test service are unavailable. Existing PHP files and PHP E2E tests remain unchanged.
+- Local SMTP receipt acceptance remains BLOCKED; no receiver was running and no mail was sent. No real payment integration was added.
+- Stage 8 parity gate: BLOCKED pending MongoDB-backed journeys, local legacy comparison, and approved loopback SMTP verification.
+- Commit/push: pending.
