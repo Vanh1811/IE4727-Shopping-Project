@@ -29,6 +29,12 @@ Baseline: `68545781decb4ac6bbebe50e1d592df287e74006` (`main` at kickoff). Source
 - Stage B `npm run test:e2e`: PASS — all 6 Chromium checks against the local Modern server.
 - Stage B `npm run db:seed`: BLOCKED — local XAMPP rejects `root` with an empty password (`Access denied ... using password: NO`). Seed performed no writes. The catalogue API against persisted SQL rows and the seed replay remain unverified until valid credentials are configured in ignored `modern/server/.env`.
 - Current phase: Stage B code complete; continue with Stage C SQL order persistence. MySQL-backed behavior remains environment-blocked until credentials/schema are available.
+- Stage B commit/push: PASS — `a41629c` (`feat(modern): migrate catalogue reads and seed to MySQL`), pushed to `feature/modern-express-mysql`.
+- Stage C implementation: PASS — checkout now writes order headers and immutable item snapshots in one InnoDB transaction, stores only the SHA-256 guest access hash, allocates stable numeric order/item IDs, and uses a unique key plus request fingerprint for idempotency and conflicting-key rejection. Cart/confirmation/guest order routes and local receipt reads/status claims use SQL repositories.
+- Stage C `npm run build`, `npm run typecheck`, `npm run lint`: PASS.
+- Stage C `npm test`: PASS — 29 tests, including checkout validation and stable/conflicting request fingerprint checks.
+- Stage C `npm run test:e2e -- --timeout=15000`: PASS — all 6 Chromium checks.
+- Stage C MySQL order, rollback, snapshot, guest-access, and concurrent-idempotency integration: BLOCKED — XAMPP rejects the available `root`/empty-password login. No MySQL order was created, and neither development nor test DB was initialized.
 
 ## Stage 0 — baseline and parity contract
 

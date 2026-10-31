@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 import { env } from '../config/env.js';
-import { Order } from '../models/Order.js';
+import { findReceiptOrder, getOrderEmailStatus, setOrderEmailStatus, claimReceipt, stampReceipt } from '../orders/repository.js';
 
 export type LocalMailConfig = { enabled: string; recipient?: string; allowedRecipient?: string; smtpHost: string; smtpPort: number };
 export type ReceiptStatus = 'disabled'|'queued'|'failed'|'sent'|'already_sent';
@@ -73,23 +73,19 @@ const config = (): LocalMailConfig => ({
 });
 
 export async function sendLocalReceipt(orderNumber: number): Promise<ReceiptStatus> {
-  const order = await Order.findOne({ orderNumber });
+  const order = await findReceiptOrder(orderNumber);
   if (!order) return 'failed';
   if (order.emailStatus === 'sent') return 'already_sent';
   const mailConfig = config();
   if (!localMailEnabled(mailConfig)) {
-    if (order.emailStatus !== 'queued') await Order.updateOne({ _id: order._id, emailStatus: { $ne: 'sent' } }, { $set: { emailStatus: 'disabled' } });
+    if (order.emailStatus !== 'queued') await setOrderEmailStatus(orderNumber, 'disabled');
     return 'disabled';
   }
 
-  const claimed = await Order.findOneAndUpdate(
-    { _id: order._id, emailStatus: { $in: ['disabled', 'failed'] } },
-    { $set: { emailStatus: 'queued' } },
-    { new: true },
-  );
+  const claimed = await claimReceipt(orderNumber);
   if (!claimed) {
-    const current = await Order.findById(order._id).select('emailStatus').lean();
-    return current?.emailStatus === 'sent' ? 'already_sent' : 'queued';
+    const current = await getOrderEmailStatus(orderNumber);
+    return current === 'sent' ? 'already_sent' : 'queued';
   }
 
   const transport = nodemailer.createTransport({
@@ -105,17 +101,17 @@ export async function sendLocalReceipt(orderNumber: number): Promise<ReceiptStat
     const result = await transport.sendMail({
       from: 'F2B SHOP <no-reply@f2b.test>',
       to: mailConfig.recipient!,
-      subject: `F2B SHOP order acknowledgement #${claimed.orderNumber}`,
-      text: buildReceiptText(claimed),
+      subject: `F2B SHOP order acknowledgement #${order.orderNumber}`,
+      text: buildReceiptText(order),
       disableFileAccess: true,
       disableUrlAccess: true,
     });
     const accepted = result.accepted.some((address) => (typeof address === 'string' ? address : address.address).toLowerCase() === mailConfig.recipient!.toLowerCase());
     if (!accepted) throw new Error('Local SMTP did not accept the allowlisted recipient.');
-    const stamped = await Order.updateOne({ _id: claimed._id, emailStatus: 'queued' }, { $set: { emailStatus: 'sent', emailSentAt: new Date() } });
-    return stamped.modifiedCount === 1 ? 'sent' : 'queued';
+    const stamped = await stampReceipt(orderNumber, 'sent');
+    return stamped ? 'sent' : 'queued';
   } catch {
-    await Order.updateOne({ _id: claimed._id, emailStatus: 'queued' }, { $set: { emailStatus: 'failed' } });
+    await stampReceipt(orderNumber, 'failed');
     return 'failed';
   } finally {
     transport.close();

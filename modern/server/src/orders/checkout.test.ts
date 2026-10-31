@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 process.env.SESSION_SECRET = 'checkout-service-test-secret-at-least-32-characters';
-const { validateCheckout } = await import('./checkout.js');
+const { checkoutValuesFingerprint, validateCheckout } = await import('./checkout.js');
 
 const valid = { full_name: 'Ada Customer', email: 'ada@example.test', phone: '+65 8123 4567', postal_code: '123456', delivery_address: '1 Sample Street', special_instructions: '' };
 
@@ -22,4 +22,9 @@ test('checkout preserves the PHP validation messages and rejects controls and li
     delivery_address: 'Enter a delivery address up to 500 characters.',
     special_instructions: 'Special instructions must be 1,000 characters or fewer.',
   });
+});
+
+test('checkout idempotency request fingerprint is stable and changes with submitted contact data', () => {
+  assert.equal(checkoutValuesFingerprint(valid), checkoutValuesFingerprint({ ...valid }));
+  assert.notEqual(checkoutValuesFingerprint(valid), checkoutValuesFingerprint({ ...valid, email: 'other@example.test' }));
 });

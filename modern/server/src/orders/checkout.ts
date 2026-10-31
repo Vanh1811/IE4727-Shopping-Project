@@ -1,17 +1,20 @@
-import { randomBytes } from 'node:crypto';
-import { Types } from 'mongoose';
+import { createHash, randomBytes } from 'node:crypto';
 import { ApiError } from '../middleware/errors.js';
 import { CartMap, calculateTotals } from '../cart/service.js';
-import { Order } from '../models/Order.js';
-import { Counter } from '../models/Counter.js';
 import { findProductsByIds } from '../catalogue/repository.js';
 import { hashAccessCode } from './access.js';
+import { centsToDecimal } from '../db/money.js';
+import { pool } from '../db/pool.js';
+import { findOrderByIdempotencyKey, insertOrder, insertOrderLines } from './repository.js';
 
 // Mirrors PHP's explicit C0/DEL control-character rejection.
 // eslint-disable-next-line no-control-regex
 const hasControls = (value: string) => /[\u0000-\u001f\u007f]/.test(value);
 const bytes = (value: string) => Buffer.byteLength(value, 'utf8');
 export type CheckoutValues = { full_name: string; email: string; phone: string; postal_code: string; delivery_address: string; special_instructions: string };
+export function checkoutValuesFingerprint(values: CheckoutValues) {
+  return createHash('sha256').update(JSON.stringify(values)).digest('hex');
+}
 
 export function validateCheckout(input: unknown) {
   const source = input && typeof input === 'object' && !Array.isArray(input) ? input as Record<string, unknown> : {};
@@ -28,8 +31,6 @@ export function validateCheckout(input: unknown) {
 }
 
 export async function createOrder(cart: CartMap, values: CheckoutValues, idempotencyKey: string) {
-  const existing = await Order.findOne({ idempotencyKey }).lean();
-  if (existing) return { orderNumber: existing.orderNumber, created: false };
   const lines = Object.values(cart);
   if (!lines.length) throw new ApiError(409, 'EMPTY_CART', 'Your bag is empty.');
   const products = await findProductsByIds(lines.map((line) => line.productId));
@@ -37,33 +38,38 @@ export async function createOrder(cart: CartMap, values: CheckoutValues, idempot
   const items = lines.map((line) => {
     const product = productById.get(line.productId);
     if (!product || product.colour !== line.colour || (product.categorySlug === 'accessories') !== (line.size === 'ONE SIZE')) throw new ApiError(409, 'CART_CHANGED', 'A product in your bag is no longer available. Review your bag and try again.');
-    return { productId: product.legacyId, productSlug: product.slug, productName: product.name, image: product.images[0]!, size: line.size, colour: line.colour, unitPriceCents: product.priceCents, quantity: line.quantity, lineTotalCents: product.priceCents * line.quantity, _id: new Types.ObjectId() };
+    return { id: 0, productId: product.legacyId, productSlug: product.slug, productName: product.name, image: product.images[0]!, size: line.size, colour: line.colour, unitPriceCents: product.priceCents, quantity: line.quantity, lineTotalCents: product.priceCents * line.quantity };
   });
   const totals = calculateTotals(items.map(({ unitPriceCents, quantity }) => ({ priceCents: unitPriceCents, quantity })));
+  const checkoutFingerprint = createHash('sha256').update(JSON.stringify({ valuesFingerprint: checkoutValuesFingerprint(values), items: items.map(({ productId, size, colour, quantity, unitPriceCents }) => ({ productId, size, colour, quantity, unitPriceCents })) })).digest('hex');
+  const existing = await findOrderByIdempotencyKey(idempotencyKey);
+  if (existing) return existing.checkoutFingerprint === checkoutFingerprint
+    ? { orderNumber: existing.orderNumber, created: false, conflict: false }
+    : { orderNumber: existing.orderNumber, created: false, conflict: true };
   const accessCode = randomBytes(24).toString('hex');
   const accessCodeHash = hashAccessCode(accessCode);
-  const mongoSession = await Order.startSession();
+  const connection = await pool.getConnection();
   let orderNumber = 0;
   try {
-    await mongoSession.withTransaction(async () => {
-      const counter = await Counter.findOneAndUpdate({ _id: 'orders' }, { $inc: { sequence: 1 } }, { upsert: true, new: true, session: mongoSession, setDefaultsOnInsert: true });
-      if (!counter) throw new Error('Order sequence unavailable.');
-      orderNumber = counter.sequence;
-      await Order.create([{
-        orderNumber, fullName: values.full_name, email: values.email, phone: values.phone,
-        postalCode: values.postal_code, deliveryAddress: values.delivery_address,
-        specialInstructions: values.special_instructions,
-        items, subtotalCents: totals.subtotalCents, discountCents: totals.discountCents,
-        deliveryCents: totals.deliveryCents, totalCents: totals.totalCents,
-        accessCodeHash, idempotencyKey, status: 'ORDER_PLACED',
-      }], { session: mongoSession });
+    await connection.beginTransaction();
+    orderNumber = await insertOrder(connection, {
+      fullName: values.full_name, email: values.email, phone: values.phone, postalCode: values.postal_code,
+      deliveryAddress: values.delivery_address, specialInstructions: values.special_instructions,
+      subtotal: centsToDecimal(totals.subtotalCents), discount: centsToDecimal(totals.discountCents),
+      delivery: centsToDecimal(totals.deliveryCents), total: centsToDecimal(totals.totalCents),
+      accessCodeHash, idempotencyKey, checkoutFingerprint,
     });
+    await insertOrderLines(connection, orderNumber, items);
+    await connection.commit();
   } catch (error) {
-    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 11000) {
-      const duplicate = await Order.findOne({ idempotencyKey }).lean();
-      if (duplicate) return { orderNumber: duplicate.orderNumber, created: false };
+    await connection.rollback().catch(() => undefined);
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'ER_DUP_ENTRY') {
+      const duplicate = await findOrderByIdempotencyKey(idempotencyKey);
+      if (duplicate) return duplicate.checkoutFingerprint === checkoutFingerprint
+        ? { orderNumber: duplicate.orderNumber, created: false, conflict: false }
+        : { orderNumber: duplicate.orderNumber, created: false, conflict: true };
     }
     throw error;
-  } finally { await mongoSession.endSession(); }
-  return { orderNumber, created: true, accessCode };
+  } finally { connection.release(); }
+  return { orderNumber, created: true, conflict: false, accessCode };
 }
