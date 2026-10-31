@@ -28,7 +28,7 @@ function staffOrderDto(order: StaffOrder) {
     fullName: order.fullName, email: order.email, phone: order.phone,
     postalCode: order.postalCode, deliveryAddress: order.deliveryAddress,
     specialInstructions: order.specialInstructions,
-    items: order.items.map((item) => ({ id: String(item.id), productId: item.productId, productName: item.productName, image: item.image, size: item.size, colour: item.colour, quantity: item.quantity, unitPriceCents: item.unitPriceCents, lineTotalCents: item.lineTotalCents })),
+    items: order.items.map((item) => ({ _id: String(item.id), id: String(item.id), productId: item.productId, productSlug: item.productSlug, productName: item.productName, image: item.image, size: item.size, colour: item.colour, quantity: item.quantity, unitPriceCents: item.unitPriceCents, lineTotalCents: item.lineTotalCents })),
     subtotalCents: order.subtotalCents, discountCents: order.discountCents,
     deliveryCents: order.deliveryCents, totalCents: order.totalCents,
   };
@@ -90,7 +90,7 @@ staffRouter.get('/staff/orders', staffOnly, async (request, response) => {
     _id: String(mock.id), orderNumber: Number(mock.order_id), orderItemId: String(mock.order_item_id),
     previewImage: mock.preview_image, printPosition: mock.print_position, printColour: mock.print_colour,
     customText: mock.custom_text, status: mock.status, revision: Number(mock.revision),
-    reviews: (reviewsByMock.get(Number(mock.id)) ?? []).map((review) => ({ _id: String(review.id), decision: review.decision, changeRequest: review.change_request, revision: Number(review.revision), createdAt: review.created_at })),
+      reviews: (reviewsByMock.get(Number(mock.id)) ?? []).map((review) => ({ _id: String(review.id), decision: review.decision, changeRequest: review.change_request, revision: Number(review.revision), createdAt: review.created_at })),
   });
   response.json({ data: { orders: orders.map((order) => ({ ...staffOrderDto(order), items: order.items.map((item) => ({ ...item, mockup: mockByItem.get(item.id) ?? null })) })), pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } }, error: null });
 });
@@ -179,7 +179,7 @@ staffRouter.get('/mockups/:id', async (request, response) => {
     const [reviews] = await connection.execute<(RowDataPacket & { id: number; decision: string; change_request: string; revision: number; created_at: Date })[]>(
       'SELECT id, decision, change_request, revision, created_at FROM mockup_reviews WHERE mockup_id = ? ORDER BY id', [mockupId],
     );
-    response.json({ data: { mockupId: String(mockup.id), orderNumber: Number(mockup.order_id), productName: items[0].product_name, size: items[0].size, colour: items[0].colour, previewImage: mockup.preview_image, printPosition: mockup.print_position, printColour: mockup.print_colour, customText: mockup.custom_text, status: mockup.status, revision: Number(mockup.revision), reviews: reviews.map((review) => ({ id: String(review.id), decision: review.decision, changeRequest: review.change_request, revision: Number(review.revision), createdAt: review.created_at })) }, error: null });
+    response.json({ data: { mockupId: String(mockup.id), orderNumber: Number(mockup.order_id), productName: items[0].product_name, size: items[0].size, colour: items[0].colour, previewImage: mockup.preview_image, printPosition: mockup.print_position, printColour: mockup.print_colour, customText: mockup.custom_text, status: mockup.status, revision: Number(mockup.revision), reviews: reviews.map((review) => ({ _id: String(review.id), decision: review.decision, changeRequest: review.change_request, revision: Number(review.revision), createdAt: review.created_at })) }, error: null });
   } finally { connection.release(); }
 });
 

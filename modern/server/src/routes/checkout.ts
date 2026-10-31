@@ -71,5 +71,5 @@ checkoutRouter.get('/orders/:orderNumber/confirmation', async (request, response
   if (initialCode) { delete request.session.checkoutLast?.accessCode; }
   response.setHeader('Cache-Control', 'no-store');
   const emailStatus = order.emailStatus === 'sent' && !initialCode ? 'already_sent' : order.emailStatus;
-  response.json({ data: { orderNumber, status: order.status, items: order.items, subtotalCents: order.subtotalCents, discountCents: order.discountCents, deliveryCents: order.deliveryCents, totalCents: order.totalCents, accessCode: initialCode ?? null, emailStatus }, error: null });
+  response.json({ data: { orderNumber, status: order.status, items: order.items.map((item) => ({ _id: String(item.id), productId: item.productId, productSlug: item.productSlug, productName: item.productName, image: item.image, size: item.size, colour: item.colour, unitPriceCents: item.unitPriceCents, quantity: item.quantity, lineTotalCents: item.lineTotalCents })), subtotalCents: order.subtotalCents, discountCents: order.discountCents, deliveryCents: order.deliveryCents, totalCents: order.totalCents, accessCode: initialCode ?? null, emailStatus }, error: null });
 });
