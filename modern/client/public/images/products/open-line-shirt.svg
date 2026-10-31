@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 560" role="img" aria-labelledby="title">
+  <title>Open Line shirt illustration</title>
+  <ellipse cx="240" cy="505" rx="132" ry="20" fill="#c7bdad" opacity=".5"/>
+  <path d="M163 143 91 198l44 77 39-27v183h132V248l39 27 44-77-72-55-41-17h-72z" fill="#d6c9b5"/>
+  <path d="M163 143c9 51 32 76 77 76s68-25 77-76l-41-17h-72z" fill="#eee6d8"/>
+  <path d="m240 164-20 48 20 20 20-20z" fill="#b7a58d"/>
+  <path d="M240 232v193M195 236v70M285 236v70" fill="none" stroke="#9b8973" stroke-width="4"/>
+  <path d="M150 250h34M296 250h34" stroke="#9b8973" stroke-width="5"/>
+</svg>

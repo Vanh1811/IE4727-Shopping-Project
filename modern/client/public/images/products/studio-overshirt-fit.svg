@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 560" role="img" aria-labelledby="title">
+  <title>Studio Overshirt styled as an everyday layer</title>
+  <rect width="480" height="560" rx="24" fill="#dfe4df"/>
+  <circle cx="363" cy="113" r="68" fill="#d86b48" opacity=".8"/>
+  <path d="M158 150c-7-34 17-58 55-58s62 24 55 58c-6 30-25 47-55 47s-49-17-55-47z" fill="#d1a184"/>
+  <path d="M151 148c9-42 32-61 65-61 29 0 50 14 59 41-36-13-72-2-101 24z" fill="#242424"/>
+  <path d="M111 259c30-38 57-55 102-55s72 17 102 55l-12 154H123z" fill="#f2e6d7"/>
+  <path d="M130 252c10-48 34-69 83-69s73 21 83 69l-20 201H150z" fill="#b8734c"/>
+  <path d="M214 203c7 28 21 43 42 43s35-15 42-43" fill="none" stroke="#e2c19e" stroke-width="14"/>
+  <path d="M150 453h189l19 62H130z" fill="#526b6c"/>
+  <path d="M116 278 64 398M340 278l52 120" stroke="#f2e6d7" stroke-width="23" stroke-linecap="round"/>
+</svg>

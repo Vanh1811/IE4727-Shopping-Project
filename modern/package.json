@@ -1,0 +1,31 @@
+{
+  "name": "f2b-shop-modern",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "npm run build:server && node scripts/dev.mjs",
+    "dev:server": "npm run build:server && npm --workspace server run dev",
+    "dev:client": "npm --workspace client run dev",
+    "build:server": "npm --workspace server run build",
+    "build": "npm --workspace server run build && npm --workspace client run build",
+    "typecheck": "npm --workspace server run typecheck && npm --workspace client run typecheck",
+    "lint": "npm --workspace server run lint && npm --workspace client run lint",
+    "test": "npm --workspace server run test",
+    "test:e2e": "playwright test -c e2e/playwright.config.ts",
+    "db:preflight": "npm run build:server && npm --workspace server run db:preflight",
+    "db:seed": "npm run build:server && npm --workspace server run db:seed"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.54.2",
+    "caniuse-lite": "1.0.30001819",
+    "concurrently": "9.1.2",
+    "typescript": "5.8.3"
+  }
+}

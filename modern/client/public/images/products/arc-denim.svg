@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 560" role="img" aria-labelledby="title">
+  <title>Arc denim jeans illustration</title>
+  <ellipse cx="240" cy="510" rx="122" ry="18" fill="#8999ad" opacity=".5"/>
+  <path d="M143 91h194l-7 116-26 288h-73l-15-226-17 226h-73l-27-288z" fill="#526d8c"/>
+  <path d="M143 91h194v58H143z" fill="#3e5977"/>
+  <path d="M200 98v112M280 98v112" stroke="#91a7bf" stroke-width="5"/>
+  <path d="M190 219h100M137 495h90M253 495h89" fill="none" stroke="#314a67" stroke-width="6"/>
+  <path d="M164 121h-30M316 121h30" stroke="#b2c0cf" stroke-width="4"/>
+</svg>

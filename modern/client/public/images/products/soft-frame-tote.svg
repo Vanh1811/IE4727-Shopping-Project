@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 560" role="img" aria-labelledby="title">
+  <title>Soft Frame tote illustration</title>
+  <ellipse cx="240" cy="490" rx="134" ry="20" fill="#838667" opacity=".5"/>
+  <path d="M113 185h254l-24 270H137z" fill="#687053"/>
+  <path d="M155 190c3-91 37-132 85-132s82 41 85 132" fill="none" stroke="#4c563d" stroke-width="22"/>
+  <path d="M148 237h184" stroke="#9ca27a" stroke-width="6"/>
+  <path d="M174 276h132v96H174z" fill="#4f593f"/>
+  <path d="M207 324h66" stroke="#b6b994" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="240" cy="254" r="8" fill="#d8b16f"/>
+</svg>
