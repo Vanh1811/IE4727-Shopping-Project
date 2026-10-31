@@ -37,4 +37,18 @@ Cart, order, mock-up and staff endpoints will be added in their owning stages.
 - The React home reads stats and featured product groups from `GET /home`; it does not embed a second catalogue copy.
 - The shop reads `GET /catalogue/meta` and `GET /products`; selections are kept in the URL with repeated `category` and `colour` keys and legacy `search`/`q`, price, and sort parameter names.
 - Product cards and detail pages use `GET /products/:id` with the source legacy numeric ID. Detail galleries keep the original SQL image URL order. A failed source image is labeled as unavailable instead of substituted with a different item.
-- Cart mutation and payment remain out of scope for this stage; the product action asks for size and does not claim a cart write succeeded.
+- Cart mutation was not part of the Stage 3 checkpoint; Stage 4 adds its CSRF-protected endpoints below. No payment action is present.
+
+## Stage 4 cart and checkout behavior
+
+| Method/path | Auth | Behavior |
+|---|---|---|
+| `GET /api/v1/cart` | Guest session | Server session cart with current product snapshots and totals recomputed from Mongo prices. Empty cart is valid without Mongo catalogue lookups. |
+| `POST /api/v1/cart/items` | Session + CSRF | Validates current product, exact source colour, apparel/accessory size, quantity 1–99. Same variant combines up to 99. |
+| `PATCH /api/v1/cart/items/:key` | Session + CSRF | Changes one existing line quantity after revalidating the catalogue option. |
+| `DELETE /api/v1/cart/items/:key`, `DELETE /api/v1/cart` | Session + CSRF | Removes one variant or clears the bag. |
+| `GET /api/v1/checkout` | Guest session | Returns current bag and totals; empty bags return `409 EMPTY_CART`. |
+| `POST /api/v1/checkout` | Session + CSRF + `Idempotency-Key` | Uses the PHP field names/messages/limits, fetches current prices, creates an immutable order snapshot and clears the session cart only after the Mongo transaction commits. Initial state is `ORDER_PLACED`; this does not charge or confirm payment. |
+| `GET /api/v1/orders/:orderNumber/confirmation` | Session-scoped order access | Returns saved totals/snapshots; initial raw 48-hex guest access code is consumed from the session on first read and is never stored in Mongo. Response is `no-store`. |
+
+Cart lines contain only product ID, size, colour and quantity in the session. Subtotal, 10% discount, $5 delivery for nonempty carts and total use integer cents; discount rounds half up to match PHP `round()` for nonnegative values.

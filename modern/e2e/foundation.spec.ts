@@ -13,3 +13,10 @@ test('nested client route refreshes to the application', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Shop all' })).toBeVisible();
   await expect(page).toHaveURL(/category=t-shirts.*sort=newest/);
 });
+
+test('cart displays an honest empty state before any product is added', async ({ page }) => {
+  await page.goto('/cart');
+  await expect(page.getByRole('heading', { name: 'Your bag' })).toBeVisible();
+  await expect(page.getByText('Your bag is empty')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Continue shopping' })).toHaveAttribute('href', '/shop');
+});

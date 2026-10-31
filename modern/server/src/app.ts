@@ -8,6 +8,8 @@ import { errorHandler, notFound } from './middleware/errors.js';
 import { healthRouter } from './routes/health.js';
 import { sessionRouter } from './routes/session.js';
 import { catalogueRouter } from './routes/catalogue.js';
+import { cartRouter } from './routes/cart.js';
+import { checkoutRouter } from './routes/checkout.js';
 
 export function createApp() {
   const app = express();
@@ -45,6 +47,8 @@ export function createApp() {
   }));
 
   app.use('/api/v1/session', sessionRouter);
+  app.use('/api/v1', cartRouter);
+  app.use('/api/v1', checkoutRouter);
   app.use('/api', notFound);
   app.use(errorHandler);
   return app;

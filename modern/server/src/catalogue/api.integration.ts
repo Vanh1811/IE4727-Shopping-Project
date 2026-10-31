@@ -6,6 +6,8 @@ import { env } from '../config/env.js';
 import { createApp } from '../app.js';
 import { Category } from '../models/Category.js';
 import { Product } from '../models/Product.js';
+import { Order } from '../models/Order.js';
+import { Counter } from '../models/Counter.js';
 import { readLegacyCatalogueSeed } from './seedParser.js';
 
 const databaseUri = env.MONGODB_URI;
@@ -51,6 +53,8 @@ before(async () => {
     databaseConnected = true;
     await Product.deleteMany({});
     await Category.deleteMany({});
+    await Order.deleteMany({});
+    await Counter.deleteMany({});
     const seed = await readLegacyCatalogueSeed();
     const categories = await Category.insertMany(seed.categories.map((category) => ({
       legacyId: category.legacyId,
@@ -90,6 +94,8 @@ before(async () => {
     if (databaseConnected) {
       await Product.deleteMany({}).catch(() => undefined);
       await Category.deleteMany({}).catch(() => undefined);
+      await Order.deleteMany({}).catch(() => undefined);
+      await Counter.deleteMany({}).catch(() => undefined);
     }
     await mongoose.disconnect().catch(() => undefined);
   }
@@ -100,6 +106,8 @@ after(async () => {
   if (server) await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
   await Product.deleteMany({});
   await Category.deleteMany({});
+  await Order.deleteMany({});
+  await Counter.deleteMany({});
   await mongoose.disconnect();
 });
 
@@ -160,4 +168,58 @@ test('home API and empty/invalid price-range states match the PHP baseline', asy
   const invalidBound = await getJson('/products?min_price=bad');
   assert.equal(invalidBound.body.data.filters!.notice, 'Enter a valid minimum price to use that filter.');
   assert.equal(invalidBound.body.data.pagination!.total, 64);
+});
+
+test('cart and checkout enforce CSRF, source validation, server totals, snapshots, idempotency and one-time access code', async () => {
+  assert.ok(databaseReady, `API integration BLOCKED: ${setupFailure}`);
+  const csrfResponse = await fetch(`${baseUrl}/api/v1/session/csrf`);
+  const cookie = csrfResponse.headers.get('set-cookie')?.split(';', 1)[0];
+  assert.ok(cookie);
+  const csrf = ((await csrfResponse.json()) as { data: { csrfToken: string } }).data.csrfToken;
+  const product = await getJson('/products/1');
+  const productId = (product.body.data as unknown as { id: number }).id;
+  const sourceProduct = await Product.findOne({ legacyId: productId }).lean();
+  assert.ok(sourceProduct);
+  const size = sourceProduct.categorySlug === 'accessories' ? 'ONE SIZE' : 'M';
+  const add = async (quantity: number) => fetch(`${baseUrl}/api/v1/cart/items`, { method: 'POST', headers: { cookie, 'content-type': 'application/json', 'x-csrf-token': csrf }, body: JSON.stringify({ productId, size, colour: sourceProduct.colour, quantity }) });
+  const denied = await fetch(`${baseUrl}/api/v1/cart/items`, { method: 'POST', headers: { cookie, 'content-type': 'application/json' }, body: JSON.stringify({ productId, size, colour: sourceProduct.colour, quantity: 1 }) });
+  assert.equal(denied.status, 403);
+  const cartKey = encodeURIComponent(`${productId}|${size}|${sourceProduct.colour}`);
+  assert.equal((await add(1)).status, 201);
+  for (const quantity of [2, 99]) assert.equal((await fetch(`${baseUrl}/api/v1/cart/items/${cartKey}`, { method: 'PATCH', headers: { cookie, 'content-type': 'application/json', 'x-csrf-token': csrf }, body: JSON.stringify({ quantity }) })).status, 200);
+  assert.equal((await add(1)).status, 422);
+  const cartResponse = await fetch(`${baseUrl}/api/v1/cart`, { headers: { cookie } });
+  const cart = (await cartResponse.json() as { data: { items: { quantity: number }[]; totalCents: number } }).data;
+  assert.equal(cart.items[0].quantity, 99);
+  assert.equal(cart.totalCents, sourceProduct.priceCents * 99 - Math.floor(sourceProduct.priceCents * 99 * 0.1 + 0.5) + 500);
+
+  const validCustomer = { full_name: 'Ada Customer', email: 'ada@example.test', phone: '+65 8123 4567', postal_code: '123456', delivery_address: '1 Sample Street', special_instructions: '' };
+  const submit = (body: unknown, key: string) => fetch(`${baseUrl}/api/v1/checkout`, { method: 'POST', headers: { cookie, 'content-type': 'application/json', 'x-csrf-token': csrf, 'idempotency-key': key }, body: JSON.stringify(body) });
+  const invalid = await submit({ ...validCustomer, full_name: 'A' }, 'invalid-checkout-key-01');
+  assert.equal(invalid.status, 422);
+  const invalidBody = await invalid.json() as { data: { errors: { full_name?: string } } };
+  assert.equal(invalidBody.data.errors.full_name, 'Enter your full name.');
+  const key = 'valid-checkout-idempotency-01';
+  const placedResponse = await submit(validCustomer, key);
+  assert.equal(placedResponse.status, 201);
+  const placed = await placedResponse.json() as { data: { orderNumber: number; status: string } };
+  assert.equal(placed.data.status, 'ORDER_PLACED');
+  const saved = await Order.findOne({ orderNumber: placed.data.orderNumber }).lean();
+  assert.ok(saved);
+  assert.equal(saved.items[0].quantity, 99);
+  assert.equal(saved.items[0].unitPriceCents, sourceProduct.priceCents);
+  assert.match(saved.accessCodeHash, /^[a-f0-9]{64}$/);
+  assert.notEqual(saved.accessCodeHash, '');
+  assert.equal((await Product.updateOne({ _id: sourceProduct._id }, { $set: { priceCents: sourceProduct.priceCents + 100 } })).modifiedCount, 1);
+  const confirmationPath = `/orders/${placed.data.orderNumber}/confirmation`;
+  const firstConfirmation = await fetch(`${baseUrl}/api/v1${confirmationPath}`, { headers: { cookie } });
+  const firstData = (await firstConfirmation.json() as { data: { accessCode: string | null; items: { unitPriceCents: number }[] } }).data;
+  assert.match(firstData.accessCode ?? '', /^[a-f0-9]{48}$/);
+  assert.equal(firstData.items[0].unitPriceCents, sourceProduct.priceCents);
+  const secondConfirmation = (await fetch(`${baseUrl}/api/v1${confirmationPath}`, { headers: { cookie } })).json();
+  assert.equal(((await secondConfirmation) as { data: { accessCode: string | null } }).data.accessCode, null);
+  assert.equal((await submit(validCustomer, key)).status, 200);
+  const emptyCart = await fetch(`${baseUrl}/api/v1/cart`, { headers: { cookie } });
+  assert.equal(((await emptyCart.json()) as { data: { itemCount: number } }).data.itemCount, 0);
+  await Product.updateOne({ _id: sourceProduct._id }, { $set: { priceCents: sourceProduct.priceCents } });
 });

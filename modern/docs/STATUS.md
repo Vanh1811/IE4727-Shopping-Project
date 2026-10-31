@@ -54,4 +54,16 @@ Baseline: `68545781decb4ac6bbebe50e1d592df287e74006` (`main` at kickoff). Branch
 
 ## Later stages
 
-Stages 4–8 have not started. Each section will include implementation state, exact verification evidence, blockers and commit SHA.
+## Stage 4 — cart, checkout and confirmation
+
+- Implementation: PASS — session cart CRUD, CSRF guard, current catalogue/colour/size/quantity revalidation, server-side integer-cent totals, checkout validator/messages, idempotent transactional order/snapshots, cart clear after commit, order state `ORDER_PLACED`, session-scoped confirmation and one-time raw guest code are implemented. React product add-to-bag, cart, checkout, and confirmation pages are wired to these endpoints.
+- `npm run build`: PASS.
+- `npm run typecheck`: PASS.
+- `npm run lint`: PASS (no warnings).
+- `npm run test`: PASS — 12 server/parser/cart/checkout tests, including quantity 1/2/99, totals/half-cent behavior, exact checkout messages and control-character rejection.
+- `npm run test:e2e`: PASS — 3 browser checks (home/hero, filtered shop refresh, empty cart and continue-shopping link). Test server ran without Mongo; no order or product fixture was available in browser.
+- `npm run test:api` against loopback `f2b_shop_modern_test`: BLOCKED — `ECONNREFUSED 127.0.0.1:27017`. The guarded suite now includes CSRF, cart quantities/limits, checkout validation, snapshot after product price edit, order idempotency, cart clearing and one-time guest code; none of its Mongo assertions ran.
+- Mongo replica-set transaction behavior, order persistence, and failed-transaction cart retention: BLOCKED until the local MongoDB replica set is started.
+- Commit/push: pending.
+
+Stages 5–8 have not started. Each section will include implementation state, exact verification evidence, blockers and commit SHA.
