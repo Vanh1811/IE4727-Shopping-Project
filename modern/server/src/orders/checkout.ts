@@ -1,10 +1,11 @@
-import { createHash, randomBytes } from 'node:crypto';
+import { randomBytes } from 'node:crypto';
 import { Types } from 'mongoose';
 import { ApiError } from '../middleware/errors.js';
 import { CartMap, calculateTotals } from '../cart/service.js';
 import { Product } from '../models/Product.js';
 import { Order } from '../models/Order.js';
 import { Counter } from '../models/Counter.js';
+import { hashAccessCode } from './access.js';
 
 // Mirrors PHP's explicit C0/DEL control-character rejection.
 // eslint-disable-next-line no-control-regex
@@ -40,7 +41,7 @@ export async function createOrder(cart: CartMap, values: CheckoutValues, idempot
   });
   const totals = calculateTotals(items.map(({ unitPriceCents, quantity }) => ({ priceCents: unitPriceCents, quantity })));
   const accessCode = randomBytes(24).toString('hex');
-  const accessCodeHash = createHash('sha256').update(accessCode).digest('hex');
+  const accessCodeHash = hashAccessCode(accessCode);
   const mongoSession = await Order.startSession();
   let orderNumber = 0;
   try {

@@ -52,3 +52,13 @@ Cart, order, mock-up and staff endpoints will be added in their owning stages.
 | `GET /api/v1/orders/:orderNumber/confirmation` | Session-scoped order access | Returns saved totals/snapshots; initial raw 48-hex guest access code is consumed from the session on first read and is never stored in Mongo. Response is `no-store`. |
 
 Cart lines contain only product ID, size, colour and quantity in the session. Subtotal, 10% discount, $5 delivery for nonempty carts and total use integer cents; discount rounds half up to match PHP `round()` for nonnegative values.
+
+## Stage 5 guest order access
+
+| Method/path | Auth | Behavior |
+|---|---|---|
+| `POST /api/v1/orders/access` | CSRF + lookup rate limit | Accepts order number and access code in the JSON body, never the URL. Checks the SHA-256 code hash with constant-time comparison, regenerates the session ID, then grants access to that order. All misses return the same generic message. |
+| `GET /api/v1/orders` | Session-scoped guest authorization | Lists only orders granted to the current session; an unauthenticated session receives an empty list. |
+| `GET /api/v1/orders/:orderNumber` | Session-scoped guest authorization | Returns only an order number present in the current session. Knowing an order number is insufficient. |
+
+Access codes are 24 cryptographically random bytes (48 lowercase hex characters); Mongo stores only SHA-256. Lookup accepts at most 128 characters and is limited to 10 failed attempts per 15 minutes per client IP. Successful recovery rotates the session ID.

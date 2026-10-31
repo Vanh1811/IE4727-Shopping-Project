@@ -30,6 +30,7 @@ export type ProductList = {
 export type HomeData = { stats: { products: number; categories: number; averageRating: number | null }; newArrivals: Product[]; topSelling: Product[] };
 export type Cart = { items: { key: string; productId: number; slug: string; name: string; image: string; categorySlug: string; size: string; colour: string; quantity: number; priceCents: number; lineTotalCents: number }[]; subtotalCents: number; discountCents: number; deliveryCents: number; totalCents: number; itemCount: number };
 export type CheckoutValues = { full_name: string; email: string; phone: string; postal_code: string; delivery_address: string; special_instructions: string };
+export type SavedOrder = { orderNumber: number; status: string; createdAt: string; fullName: string; items: { id: string; productId: number; productName: string; image: string; size: string; colour: string; unitPriceCents: number; quantity: number; lineTotalCents: number }[]; subtotalCents: number; discountCents: number; deliveryCents: number; totalCents: number; emailStatus: string };
 export class ApiRequestError extends Error { constructor(message: string, public readonly data: unknown) { super(message); this.name = 'ApiRequestError'; } }
 
 async function mutate<T>(path: string, method: 'POST'|'PATCH'|'DELETE', body?: unknown, headers: Record<string,string> = {}): Promise<T> {
@@ -67,6 +68,9 @@ export const api = {
   checkout: () => get<Cart>('/checkout'),
   submitCheckout: (values: CheckoutValues, key: string) => mutate<{ orderNumber: number; status: string; confirmationUrl: string }>('/checkout', 'POST', values, { 'Idempotency-Key': key }),
   confirmation: (number: string) => get<{ orderNumber: number; status: string; items: Cart['items']; subtotalCents: number; discountCents: number; deliveryCents: number; totalCents: number; accessCode: string | null; emailStatus: string }>(`/orders/${encodeURIComponent(number)}/confirmation`),
+  orders: () => get<{ orders: SavedOrder[] }>('/orders'),
+  order: (number: string) => get<{ order: SavedOrder }>(`/orders/${encodeURIComponent(number)}`),
+  lookupOrder: (orderNumber: string, accessCode: string) => mutate<{ order: SavedOrder }>('/orders/access', 'POST', { orderNumber, accessCode }),
 };
 
 export const money = (cents: number) => new Intl.NumberFormat('en-SG', { style: 'currency', currency: 'SGD' }).format(cents / 100);

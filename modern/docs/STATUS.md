@@ -66,4 +66,15 @@ Baseline: `68545781decb4ac6bbebe50e1d592df287e74006` (`main` at kickoff). Branch
 - Mongo replica-set transaction behavior, order persistence, and failed-transaction cart retention: BLOCKED until the local MongoDB replica set is started.
 - Commit/push: PASS — `c5432e8` (`feat(modern): port cart checkout and guest confirmation`), pushed to `feature/modern-react-express-mongo`. Mongo persistence gate remains BLOCKED as recorded above.
 
-Stages 5–8 have not started. Each section will include implementation state, exact verification evidence, blockers and commit SHA.
+## Stage 5 — guest order access and permissions
+
+- Implementation: PASS — My Orders lookup accepts credentials in a POST body, stores only SHA-256 in Mongo, compares hashes with `timingSafeEqual`, returns a generic failure message, limits failed lookups, regenerates session ID after success, and exposes order details only to session-authorized order numbers. React lookup keeps both credentials out of the URL.
+- `npm run build`: PASS.
+- `npm run typecheck`: PASS.
+- `npm run lint`: PASS (no warnings).
+- `npm run test`: PASS — 13 unit/foundation/parser/cart/checkout/access tests.
+- `npm run test:e2e`: PASS — 4 browser checks (home/hero, filtered shop refresh, empty cart and guest lookup form) against the local app using existing Chromium 1248. The app server was launched directly from the already-built output after `npm run dev` hit a transient Node heap failure; browser checks themselves passed.
+- `npm run test:api`: BLOCKED — loopback `f2b_shop_modern_test` cannot connect (`ECONNREFUSED 127.0.0.1:27017`); the expanded session-isolation, wrong-code, generic-error and session-rotation assertions have not run.
+- Commit/push: pending.
+
+Stages 6–8 have not started. Each section will include implementation state, exact verification evidence, blockers and commit SHA.
