@@ -17,7 +17,7 @@ export async function checkDatabaseReadiness(): Promise<DatabaseReadiness> {
     );
     if (tables.length !== 8) return { connected: true, schemaReady: false };
     const [versions] = await pool.execute<(RowDataPacket & { version: string })[]>(
-      'SELECT version FROM schema_migrations WHERE version = ?', ['003_mockup_order_item_ownership'],
+      'SELECT version FROM schema_migrations WHERE version = ?', ['004_receipt_claim_lease'],
     );
     return { connected: true, schemaReady: versions.length === 1 };
   } catch {

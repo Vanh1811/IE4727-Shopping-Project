@@ -42,6 +42,12 @@ Baseline: `68545781decb4ac6bbebe50e1d592df287e74006` (`main` at kickoff). Source
 - Stage D `npm test`: PASS — 29 tests, including existing status-transition, revision, partial approval, bcrypt, and local asset validation tests.
 - Stage D `npm run test:e2e -- --timeout=15000`: PASS — all 6 Chromium checks. An initial invocation used an incorrect local Chromium path and failed to launch; rerun with `chromium-1248\\chrome-win64\\chrome.exe` passed.
 - Stage D MySQL staff/customer lifecycle and ownership/locking integration: BLOCKED — no valid XAMPP credentials are available; no SQL fixtures or orders were created.
+- Stage D commit/push: PASS — `227d2b7` (`refactor(modern): port staff mockup workflow to MySQL`), pushed to `feature/modern-express-mysql`.
+- Stage E implementation: PASS — receipts are composed only from committed SQL order/item snapshots; recipient and transport remain exact-allowlisted and loopback-only, disabled by default, and SMTP runs after the order transaction. Atomic SQL claims prevent concurrent sends; a 10-minute claim lease recovers a worker that exited while queued. `sent` means the allowlisted SMTP server accepted the message, not that an inbox delivered it. No real payment or external mail integration was added.
+- Stage E schema: PASS — migration `004_receipt_claim_lease.sql` adds the SQL receipt claim lease timestamp.
+- Stage E `npm run build`, `npm run typecheck`, `npm run lint`: PASS.
+- Stage E `npm test`: PASS — 29 tests, including local recipient/transport fail-closed checks and receipt snapshot formatting without customer email.
+- Stage E SQL receipt claim and local SMTP acceptance: BLOCKED — MySQL authentication is unavailable and no local SMTP receiver is configured; no message was sent.
 
 ## Stage 0 — baseline and parity contract
 

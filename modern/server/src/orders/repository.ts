@@ -93,7 +93,7 @@ export async function findOrdersByNumbers(orderNumbers: number[]): Promise<Order
 }
 
 export async function setOrderEmailStatus(orderNumber: number, status: OrderRecord['emailStatus']) {
-  await pool.execute('UPDATE orders SET email_status = ? WHERE id = ? AND email_status <> \'sent\'', [status, orderNumber]);
+  await pool.execute('UPDATE orders SET email_status = ?, email_claimed_at = NULL WHERE id = ? AND email_status <> \'sent\'', [status, orderNumber]);
 }
 
 export async function getOrderEmailStatus(orderNumber: number): Promise<OrderRecord['emailStatus']|null> {
@@ -109,16 +109,20 @@ export async function findReceiptOrder(orderNumber: number) {
 }
 
 export async function claimReceipt(orderNumber: number) {
-  const [result] = await pool.execute('UPDATE orders SET email_status = \'queued\' WHERE id = ? AND email_status IN (\'disabled\', \'failed\')', [orderNumber]);
+  const [result] = await pool.execute(
+    `UPDATE orders SET email_status = 'queued', email_claimed_at = CURRENT_TIMESTAMP
+     WHERE id = ? AND (email_status IN ('disabled', 'failed') OR
+       (email_status = 'queued' AND (email_claimed_at IS NULL OR email_claimed_at < CURRENT_TIMESTAMP - INTERVAL 10 MINUTE)))`, [orderNumber],
+  );
   return 'affectedRows' in result ? Number(result.affectedRows) === 1 : false;
 }
 
 export async function stampReceipt(orderNumber: number, status: 'sent'|'failed') {
   if (status === 'sent') {
-    const [result] = await pool.execute('UPDATE orders SET email_status = \'sent\', email_sent_at = CURRENT_TIMESTAMP WHERE id = ? AND email_status = \'queued\'', [orderNumber]);
+    const [result] = await pool.execute('UPDATE orders SET email_status = \'sent\', email_sent_at = CURRENT_TIMESTAMP, email_claimed_at = NULL WHERE id = ? AND email_status = \'queued\'', [orderNumber]);
     return 'affectedRows' in result ? Number(result.affectedRows) === 1 : false;
   }
-  const [result] = await pool.execute('UPDATE orders SET email_status = \'failed\' WHERE id = ? AND email_status = \'queued\'', [orderNumber]);
+  const [result] = await pool.execute('UPDATE orders SET email_status = \'failed\', email_claimed_at = NULL WHERE id = ? AND email_status = \'queued\'', [orderNumber]);
   return 'affectedRows' in result ? Number(result.affectedRows) === 1 : false;
 }
 
