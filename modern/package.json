@@ -20,6 +20,7 @@
     "test": "npm --workspace server run test",
     "test:api": "npm run build:server && npm --workspace server run test:api",
     "test:e2e": "playwright test -c e2e/playwright.config.ts",
+    "db:init": "npm run build:server && npm --workspace server run db:init",
     "db:preflight": "npm run build:server && npm --workspace server run db:preflight",
     "db:seed": "npm run build:server && npm --workspace server run db:seed"
   },

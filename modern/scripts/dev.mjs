@@ -1,9 +1,10 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+dotenv.config({ path: resolve(root, 'server/.env') });
 const serverFile = resolve(root, 'server/dist/server.js');
 const viteFile = resolve(root, 'node_modules/vite/bin/vite.js');
 const env = {

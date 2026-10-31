@@ -12,7 +12,16 @@ Baseline: `68545781decb4ac6bbebe50e1d592df287e74006` (`main` at kickoff). Source
 - Baseline API integration: BLOCKED — all four Mongo integration groups report `ECONNREFUSED 127.0.0.1:27017`; no MongoDB service is running.
 - XAMPP MySQL: TCP port `127.0.0.1:3306` is reachable. No database was queried, seeded, initialized, or modified during audit.
 - Protected Base Version: no PHP files or root database files changed; `f2b_shop` was not accessed.
-- Current phase: audit complete; Stage A implementation has not started.
+- Stage A implementation: PASS for code — `mysql2/promise` pool, database allowlist guards, versioned Modern-only DDL, non-destructive `db:init`, connection/schema preflight, readiness probe, parameterized MySQL session store with expiry pruning, and explicit test-only MemoryStore injection are implemented. `connect-mongo` was removed; Mongoose remains temporarily for unmigrated features.
+- Stage A `npm run build`: PASS with `NODE_OPTIONS=--max-old-space-size=768` after one earlier Node heap allocation failure at the default limit.
+- Stage A `npm run typecheck`: PASS.
+- Stage A `npm run lint`: PASS.
+- Stage A `npm run test`: PASS — 27 tests, including session serialization/expiry, SQL parameterization, privilege parsing, and Base database rejection.
+- Stage A `npm run test:e2e`: PASS — 6 Chromium browser checks against the existing local app; UI code was not changed.
+- Stage A `npm run db:preflight`: BLOCKED — XAMPP TCP listener responds, but local `root` with empty password is rejected (`Access denied ... using password: NO`). No `.env` exists and no database/schema was created.
+- Stage A `npm run test:api`: BLOCKED — the legacy integration harness still requires MongoDB (`ECONNREFUSED 127.0.0.1:27017`) and MySQL test credentials; it will be replaced during Stage F.
+- Stage A MySQL schema/session integration: BLOCKED until valid local credentials are placed in ignored `server/.env`; do not paste credentials into chat or commit them. `db:init` was not run and no schema was created.
+- Current phase: Stage A code complete; database-backed verification awaits local MySQL authentication. Stages B–F are next.
 
 ## Stage 0 — baseline and parity contract
 

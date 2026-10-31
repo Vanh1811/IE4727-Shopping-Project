@@ -1,10 +1,11 @@
 # Windows setup (Modern Version)
 
-The PHP/MySQL Base Version stays in the repository root and continues to use XAMPP. The modern stack runs separately on Node.js and MongoDB.
+The PHP/MySQL Base Version stays in the repository root and continues to use XAMPP. This branch is migrating the Modern Version in stages. Stage A has added XAMPP MySQL infrastructure and persistent MySQL sessions, while catalogue and business repositories still use MongoDB until their later stages. This is a transitional setup, not the final Mongo-free runbook.
 
 ## Requirements
 
 - Node.js 22.12 or newer and npm.
+- XAMPP MySQL/MariaDB running on `127.0.0.1:3306`; configure a local MySQL user with privileges to create/alter only the `f2b_shop_modern` database. The `.env.example` empty password is only an untouched-XAMPP example.
 - MongoDB bound to loopback at `127.0.0.1:27017`, configured as a single-node replica set named `rs0`. Multi-document order and review writes require replica-set transactions.
 - Chromium for Playwright browser tests (install with `npx playwright install chromium` when network access is available).
 
@@ -18,7 +19,7 @@ npm ci
 Copy-Item server/.env.example server/.env
 ```
 
-Edit `server/.env`: generate a local session secret (at least 32 characters), set the Mongo URI to `mongodb://127.0.0.1:27017/f2b_shop_modern?replicaSet=rs0`, and replace `STAFF_PASSWORD_HASH` with a bcrypt hash for a locally chosen staff password. The app accepts PHP-compatible `$2y$` hashes. Keep the hash and plaintext password out of source control. Staff login stays disabled while the example placeholder remains. The example mail recipient is a placeholder; local mail stays disabled.
+Edit `server/.env`: enter the local XAMPP credentials in `DB_USER`/`DB_PASSWORD`, keep `DB_HOST=127.0.0.1`, and leave `DB_NAME=f2b_shop_modern`. Generate a local session secret (at least 32 characters). Until the remaining persistence stages are complete, also set `MONGODB_URI` to the local replica-set URI shown in the example. Replace `STAFF_PASSWORD_HASH` with a bcrypt hash for a locally chosen staff password. The app accepts PHP-compatible `$2y$` hashes. Keep the hash, database password, and plaintext staff password out of source control. Staff login stays disabled while the example placeholder remains. The example mail recipient is a placeholder; local mail stays disabled.
 
 If MongoDB is installed as a Windows service, configure its own local `mongod.cfg` with `bindIp: 127.0.0.1` and `replication.replSetName: rs0`, restart that service, and initialize once from `mongosh`:
 
@@ -26,15 +27,27 @@ If MongoDB is installed as a Windows service, configure its own local `mongod.cf
 rs.initiate({ _id: "rs0", members: [{ _id: 0, host: "127.0.0.1:27017" }] })
 ```
 
-Only initialize a replica set you have configured for this local project. Then run:
+Only initialize a replica set you have configured for this local project. First check and initialize only the Modern SQL database:
 
 ```powershell
 npm run db:preflight
+```
+
+This first preflight checks loopback connectivity, InnoDB, target privileges and reports when the schema is not initialized. `db:init` creates only the allowlisted Modern schema and applies Modern-only migrations; it does not drop or seed anything. Then run:
+
+```powershell
+npm run db:init
+npm run db:preflight
+```
+
+It refuses the `f2b_shop` Base Version database. The catalogue `db:seed` command is still Mongo-backed in this migration checkpoint and will move to MySQL in Stage B. Initialize MongoDB only for the still-unmigrated catalogue/order/staff repositories, then:
+
+```powershell
 npm run db:seed
 npm run dev
 ```
 
-Open `http://127.0.0.1:5173`; the API is at `http://127.0.0.1:4000/api/v1`. Vite proxies `/api` to Express so browser requests share the frontend origin and session cookie. Use `127.0.0.1` consistently; do not mix it with `localhost` when testing cookies. The Stage 1 health endpoint returns 503 until MongoDB is connected.
+Open `http://127.0.0.1:5173`; the API is at `http://127.0.0.1:4000/api/v1`. Vite proxies `/api` to Express so browser requests share the frontend origin and session cookie. Use `127.0.0.1` consistently; do not mix it with `localhost` when testing cookies. The health endpoint returns 503 unless the Modern MySQL schema and transitional Mongo catalogue are both ready.
 
 ## Optional local receipt
 

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import type { Server } from 'node:http';
+import session from 'express-session';
 
 process.env.NODE_ENV = 'test';
 process.env.SESSION_SECRET = 'stage-one-test-secret-with-at-least-32-characters';
@@ -12,7 +13,7 @@ let server: Server;
 let baseUrl = '';
 
 before(async () => {
-  server = createApp().listen(0, '127.0.0.1');
+  server = createApp({ sessionStore: new session.MemoryStore() }).listen(0, '127.0.0.1');
   await new Promise<void>((resolve) => server.once('listening', resolve));
   const address = server.address();
   assert.ok(address && typeof address !== 'string');
@@ -23,11 +24,11 @@ after(async () => {
   await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
 });
 
-test('health reports unavailable MongoDB without exposing configuration', async () => {
+test('health reports unready persistence without exposing connection configuration', async () => {
   const response = await fetch(`${baseUrl}/api/v1/health`);
   assert.equal(response.status, 503);
   assert.deepEqual(await response.json(), {
-    data: { status: 'not_ready', database: 'not_configured' },
+    data: { status: 'not_ready', database: 'disconnected' },
     error: null,
   });
 });

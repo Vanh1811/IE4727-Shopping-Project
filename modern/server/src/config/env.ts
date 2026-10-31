@@ -4,6 +4,11 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().min(1).max(65535).default(4000),
   MONGODB_URI: z.string().optional(),
+  DB_HOST: z.string().default('127.0.0.1'),
+  DB_PORT: z.coerce.number().int().min(1).max(65535).default(3306),
+  DB_USER: z.string().min(1).default('root'),
+  DB_PASSWORD: z.string().default(''),
+  DB_NAME: z.string().default(process.env.NODE_ENV === 'test' ? 'f2b_shop_modern_test' : 'f2b_shop_modern'),
   STAFF_PASSWORD_HASH: z.string().optional(),
   LOCAL_MAIL_ENABLED: z.string().optional().default('0'),
   LOCAL_MAIL_TO: z.string().optional(),
@@ -13,8 +18,15 @@ const envSchema = z.object({
   SESSION_SECRET: z.string().min(32),
   CLIENT_ORIGIN: z.string().url().default('http://127.0.0.1:5173'),
 }).superRefine((value, context) => {
-  if (value.NODE_ENV === 'production' && !value.MONGODB_URI) {
-    context.addIssue({ code: z.ZodIssueCode.custom, path: ['MONGODB_URI'], message: 'MONGODB_URI is required in production.' });
+  if (!['127.0.0.1', 'localhost', '::1'].includes(value.DB_HOST)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['DB_HOST'], message: 'Modern MySQL must use a loopback host.' });
+  }
+  const expectedDatabase = value.NODE_ENV === 'test' ? 'f2b_shop_modern_test' : 'f2b_shop_modern';
+  if (value.DB_NAME !== expectedDatabase) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['DB_NAME'], message: `DB_NAME must be ${expectedDatabase} for NODE_ENV=${value.NODE_ENV}.` });
+  }
+  if (value.NODE_ENV !== 'test' && value.DB_NAME === 'f2b_shop') {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['DB_NAME'], message: 'The PHP Base Version database is protected.' });
   }
 });
 

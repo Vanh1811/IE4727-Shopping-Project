@@ -1,6 +1,5 @@
 import express from 'express';
 import session from 'express-session';
-import MongoStore from 'connect-mongo';
 import helmet from 'helmet';
 import { rateLimit } from 'express-rate-limit';
 import { env, sessionSecret } from './config/env.js';
@@ -12,8 +11,10 @@ import { cartRouter } from './routes/cart.js';
 import { checkoutRouter } from './routes/checkout.js';
 import { ordersRouter } from './routes/orders.js';
 import { staffRouter } from './routes/staff.js';
+import { MysqlSessionStore } from './db/mysqlSessionStore.js';
+import { pool } from './db/pool.js';
 
-export function createApp() {
+export function createApp(options: { sessionStore?: session.Store } = {}) {
   const app = express();
   app.disable('x-powered-by');
   app.use(helmet({ contentSecurityPolicy: env.NODE_ENV === 'production' ? undefined : false }));
@@ -39,7 +40,7 @@ export function createApp() {
     secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
-    ...(env.MONGODB_URI ? { store: MongoStore.create({ mongoUrl: env.MONGODB_URI, collectionName: 'sessions' }) } : {}),
+    store: options.sessionStore ?? new MysqlSessionStore(pool),
     cookie: {
       httpOnly: true,
       sameSite: 'lax',
