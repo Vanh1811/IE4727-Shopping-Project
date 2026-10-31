@@ -28,3 +28,9 @@ test('guest order lookup keeps credentials in the form and not the URL', async (
   await expect(page.getByLabel('Guest access code')).toBeVisible();
   await expect(page).toHaveURL('http://127.0.0.1:5173/orders');
 });
+
+test('staff sign-in clearly reports when no local password hash is configured', async ({ page }) => {
+  await page.goto('/staff');
+  await expect(page.getByRole('heading', { name: 'Staff access' })).toBeVisible();
+  await expect(page.getByText('Staff access is not configured on this server.')).toBeVisible();
+});

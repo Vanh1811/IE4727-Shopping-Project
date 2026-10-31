@@ -18,7 +18,7 @@ npm ci
 Copy-Item server/.env.example server/.env
 ```
 
-Edit `server/.env`: generate a local session secret (at least 32 characters), set the Mongo URI to `mongodb://127.0.0.1:27017/f2b_shop_modern?replicaSet=rs0`, and create a staff password hash only when staff login is implemented. The example mail recipient is a placeholder; local mail stays disabled.
+Edit `server/.env`: generate a local session secret (at least 32 characters), set the Mongo URI to `mongodb://127.0.0.1:27017/f2b_shop_modern?replicaSet=rs0`, and replace `STAFF_PASSWORD_HASH` with a bcrypt hash for a locally chosen staff password. The app accepts PHP-compatible `$2y$` hashes. Keep the hash and plaintext password out of source control. Staff login stays disabled while the example placeholder remains. The example mail recipient is a placeholder; local mail stays disabled.
 
 If MongoDB is installed as a Windows service, configure its own local `mongod.cfg` with `bindIp: 127.0.0.1` and `replication.replSetName: rs0`, restart that service, and initialize once from `mongosh`:
 

@@ -2,12 +2,14 @@ import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import type { Server } from 'node:http';
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 import { env } from '../config/env.js';
 import { createApp } from '../app.js';
 import { Category } from '../models/Category.js';
 import { Product } from '../models/Product.js';
 import { Order } from '../models/Order.js';
 import { Counter } from '../models/Counter.js';
+import { Mockup } from '../models/Mockup.js';
 import { readLegacyCatalogueSeed } from './seedParser.js';
 
 const databaseUri = env.MONGODB_URI;
@@ -24,6 +26,8 @@ let baseUrl = '';
 let databaseConnected = false;
 let databaseReady = false;
 let setupFailure = 'MongoDB is unavailable.';
+let lifecycleFixture: { orderNumber: number; itemId: string; guestCookie: string; guestCsrf: string } | null = null;
+const integrationStaffPassword = 'F2B-local-integration-only';
 
 interface ProductDto {
   name: string;
@@ -48,6 +52,7 @@ interface ApiBody {
 }
 
 before(async () => {
+  env.STAFF_PASSWORD_HASH = bcrypt.hashSync(integrationStaffPassword, 4);
   try {
     await mongoose.connect(databaseUri, { serverSelectionTimeoutMS: 5000 });
     databaseConnected = true;
@@ -55,6 +60,7 @@ before(async () => {
     await Category.deleteMany({});
     await Order.deleteMany({});
     await Counter.deleteMany({});
+    await Mockup.deleteMany({});
     const seed = await readLegacyCatalogueSeed();
     const categories = await Category.insertMany(seed.categories.map((category) => ({
       legacyId: category.legacyId,
@@ -96,6 +102,7 @@ before(async () => {
       await Category.deleteMany({}).catch(() => undefined);
       await Order.deleteMany({}).catch(() => undefined);
       await Counter.deleteMany({}).catch(() => undefined);
+      await Mockup.deleteMany({}).catch(() => undefined);
     }
     await mongoose.disconnect().catch(() => undefined);
   }
@@ -108,6 +115,7 @@ after(async () => {
   await Category.deleteMany({});
   await Order.deleteMany({});
   await Counter.deleteMany({});
+  await Mockup.deleteMany({});
   await mongoose.disconnect();
 });
 
@@ -206,6 +214,7 @@ test('cart and checkout enforce CSRF, source validation, server totals, snapshot
   assert.equal(placed.data.status, 'ORDER_PLACED');
   const saved = await Order.findOne({ orderNumber: placed.data.orderNumber }).lean();
   assert.ok(saved);
+  lifecycleFixture = { orderNumber: placed.data.orderNumber, itemId: saved.items[0]._id.toString(), guestCookie: cookie, guestCsrf: csrf };
   assert.equal(saved.items[0].quantity, 99);
   assert.equal(saved.items[0].unitPriceCents, sourceProduct.priceCents);
   assert.match(saved.accessCodeHash, /^[a-f0-9]{64}$/);
@@ -238,4 +247,59 @@ test('cart and checkout enforce CSRF, source validation, server totals, snapshot
   const emptyCart = await fetch(`${baseUrl}/api/v1/cart`, { headers: { cookie } });
   assert.equal(((await emptyCart.json()) as { data: { itemCount: number } }).data.itemCount, 0);
   await Product.updateOne({ _id: sourceProduct._id }, { $set: { priceCents: sourceProduct.priceCents } });
+});
+
+test('staff and customer complete publish, revision, approval, and production lifecycle across sessions', async () => {
+  assert.ok(databaseReady, `API integration BLOCKED: ${setupFailure}`);
+  assert.ok(lifecycleFixture, 'The checkout integration fixture must complete first.');
+  const guest = lifecycleFixture;
+  const staffSession = await fetch(`${baseUrl}/api/v1/session/csrf`);
+  let staffCookie = staffSession.headers.get('set-cookie')?.split(';', 1)[0];
+  assert.ok(staffCookie);
+  let staffCsrf = ((await staffSession.json()) as { data: { csrfToken: string } }).data.csrfToken;
+  const login = await fetch(`${baseUrl}/api/v1/staff/login`, { method: 'POST', headers: { cookie: staffCookie, 'content-type': 'application/json', 'x-csrf-token': staffCsrf }, body: JSON.stringify({ password: integrationStaffPassword }) });
+  assert.equal(login.status, 200);
+  const rotatedStaffCookie = login.headers.get('set-cookie')?.split(';', 1)[0];
+  assert.ok(rotatedStaffCookie);
+  assert.notEqual(rotatedStaffCookie, staffCookie);
+  staffCookie = rotatedStaffCookie;
+  const renewed = await fetch(`${baseUrl}/api/v1/session/csrf`, { headers: { cookie: staffCookie } });
+  staffCsrf = ((await renewed.json()) as { data: { csrfToken: string } }).data.csrfToken;
+  const staffQueue = await fetch(`${baseUrl}/api/v1/staff/orders`, { headers: { cookie: staffCookie } });
+  assert.equal(staffQueue.status, 200);
+  const staffQueueText = await staffQueue.text();
+  assert.equal(staffQueueText.includes('accessCodeHash'), false);
+  assert.equal(staffQueueText.includes('idempotencyKey'), false);
+  const publish = (revision?: number) => fetch(`${baseUrl}/api/v1/staff/orders/${guest.orderNumber}/items/${guest.itemId}/mockup`, { method: 'POST', headers: { cookie: staffCookie!, 'content-type': 'application/json', 'x-csrf-token': staffCsrf }, body: JSON.stringify({ previewImage: 'images/products/arc-denim.svg', printPosition: 'Front', printColour: 'Black', customText: revision ? 'Updated mark' : 'F2B' }) });
+  const firstPublish = await publish();
+  assert.equal(firstPublish.status, 201);
+  const first = (await firstPublish.json() as { data: { mockupId: string; revision: number } }).data;
+  assert.equal(first.revision, 1);
+  assert.equal((await publish()).status, 409);
+  assert.equal((await Order.findOne({ orderNumber: guest.orderNumber }).lean())?.status, 'DESIGN_REVIEW');
+  const unauthorizedSession = await fetch(`${baseUrl}/api/v1/session/csrf`);
+  const unauthorizedCookieHeader = unauthorizedSession.headers.get('set-cookie')?.split(';', 1)[0];
+  assert.ok(unauthorizedCookieHeader);
+  const unauthorizedCookie = unauthorizedCookieHeader;
+  assert.equal((await fetch(`${baseUrl}/api/v1/mockups/${first.mockupId}`, { headers: { cookie: unauthorizedCookie } })).status, 404);
+  const customerPreview = await fetch(`${baseUrl}/api/v1/mockups/${first.mockupId}`, { headers: { cookie: guest.guestCookie } });
+  assert.equal(customerPreview.status, 200);
+  const requestChanges = await fetch(`${baseUrl}/api/v1/mockups/${first.mockupId}/review`, { method: 'POST', headers: { cookie: guest.guestCookie, 'content-type': 'application/json', 'x-csrf-token': guest.guestCsrf }, body: JSON.stringify({ expectedRevision: 1, decision: 'request_changes', changeRequest: 'Move the print higher.' }) });
+  assert.equal(requestChanges.status, 200);
+  const stale = await fetch(`${baseUrl}/api/v1/mockups/${first.mockupId}/review`, { method: 'POST', headers: { cookie: guest.guestCookie, 'content-type': 'application/json', 'x-csrf-token': guest.guestCsrf }, body: JSON.stringify({ expectedRevision: 1, decision: 'approve' }) });
+  assert.equal(stale.status, 409);
+  assert.equal((await publish(2)).status, 201);
+  const secondPreview = await fetch(`${baseUrl}/api/v1/mockups/${first.mockupId}`, { headers: { cookie: guest.guestCookie } });
+  assert.equal(((await secondPreview.json()) as { data: { revision: number; reviews: unknown[] } }).data.revision, 2);
+  const approve = await fetch(`${baseUrl}/api/v1/mockups/${first.mockupId}/review`, { method: 'POST', headers: { cookie: guest.guestCookie, 'content-type': 'application/json', 'x-csrf-token': guest.guestCsrf }, body: JSON.stringify({ expectedRevision: 2, decision: 'approve' }) });
+  assert.equal(approve.status, 200);
+  assert.equal((await Order.findOne({ orderNumber: guest.orderNumber }).lean())?.status, 'CONFIRMED');
+  const transition = (status: string) => fetch(`${baseUrl}/api/v1/staff/orders/${guest.orderNumber}/status`, { method: 'POST', headers: { cookie: staffCookie!, 'content-type': 'application/json', 'x-csrf-token': staffCsrf }, body: JSON.stringify({ status }) });
+  assert.equal((await transition('PROCESSING')).status, 200);
+  assert.equal((await transition('COMPLETED')).status, 200);
+  assert.equal((await transition('PROCESSING')).status, 409);
+  const finalOrder = await Order.findOne({ orderNumber: guest.orderNumber }).lean();
+  assert.equal(finalOrder?.status, 'COMPLETED');
+  const finalMockup = await Mockup.findById(first.mockupId).lean();
+  assert.deepEqual(finalMockup?.reviews.map((review) => review.decision), ['request_changes','approve']);
 });

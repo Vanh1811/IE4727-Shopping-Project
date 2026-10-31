@@ -77,4 +77,16 @@ Baseline: `68545781decb4ac6bbebe50e1d592df287e74006` (`main` at kickoff). Branch
 - `npm run test:api`: BLOCKED — loopback `f2b_shop_modern_test` cannot connect (`ECONNREFUSED 127.0.0.1:27017`); the expanded session-isolation, wrong-code, generic-error and session-rotation assertions have not run.
 - Commit/push: PASS — `1c86ff6` (`feat(modern): implement guest order access and authorization`), pushed to `feature/modern-react-express-mongo`. Mongo privacy integration remains BLOCKED as recorded above.
 
-Stages 6–8 have not started. Each section will include implementation state, exact verification evidence, blockers and commit SHA.
+Stages 7–8 have not started. Each section will include implementation state, exact verification evidence, blockers and commit SHA.
+
+## Stage 6 — staff, mock-ups and full lifecycle
+
+- Implementation: PASS — PHP-compatible bcrypt login/logout with session rotation, staff-only paginated APIs, local image allowlist, transactional publish/revision/review flow, customer review UI/history, and atomic guarded order transitions are implemented.
+- `npm run build`: PASS.
+- `npm run typecheck`: PASS.
+- `npm run lint`: PASS (no warnings).
+- `npm run test`: PASS — 21 tests, including bcrypt `$2y$`, staff guest rejection, image allowlist/traversal, revision rules, valid lifecycle edges and partial approval.
+- `npm run test:e2e`: PASS — 5 browser checks, including the staff-not-configured message; app server launched directly from built output. No staff password or Mongo database was configured for this browser run.
+- `npm run test:api` against loopback `f2b_shop_modern_test`: BLOCKED — `ECONNREFUSED 127.0.0.1:27017`. The four guarded suites include catalogue, cart/checkout, guest session isolation, staff login, first publish, change request, stale revision rejection, revision publish, customer approval, staff processing/completion, and invalid transition. None of these persistent assertions ran.
+- Full staff–customer–staff lifecycle, transaction behavior, and order/mock-up persistence: BLOCKED until the local MongoDB replica set is available.
+- Commit/push: pending.

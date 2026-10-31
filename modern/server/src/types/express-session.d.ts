@@ -7,5 +7,6 @@ declare module 'express-session' {
     cart?: Record<string, { productId: number; size: string; colour: string; quantity: number }>;
     checkoutLast?: { idempotencyKey: string; orderNumber: number; accessCode?: string };
     authorizedOrderNumbers?: number[];
+    staffLoginAt?: number;
   }
 }

@@ -31,6 +31,8 @@ export type HomeData = { stats: { products: number; categories: number; averageR
 export type Cart = { items: { key: string; productId: number; slug: string; name: string; image: string; categorySlug: string; size: string; colour: string; quantity: number; priceCents: number; lineTotalCents: number }[]; subtotalCents: number; discountCents: number; deliveryCents: number; totalCents: number; itemCount: number };
 export type CheckoutValues = { full_name: string; email: string; phone: string; postal_code: string; delivery_address: string; special_instructions: string };
 export type SavedOrder = { orderNumber: number; status: string; createdAt: string; fullName: string; items: { id: string; productId: number; productName: string; image: string; size: string; colour: string; unitPriceCents: number; quantity: number; lineTotalCents: number }[]; subtotalCents: number; discountCents: number; deliveryCents: number; totalCents: number; emailStatus: string };
+export type StaffOrder = Omit<SavedOrder, 'items'> & { email: string; phone: string; postalCode: string; deliveryAddress: string; specialInstructions: string; items: (SavedOrder['items'][number] & { mockup: { _id: string; previewImage: string; printPosition: string; printColour: string; customText: string; status: string; revision: number } | null })[] };
+export type MockupView = { mockupId: string; orderNumber: number; productName: string; size: string; colour: string; previewImage: string; printPosition: string; printColour: string; customText: string; status: string; revision: number; reviews: { decision: string; changeRequest: string; revision: number; createdAt: string }[] };
 export class ApiRequestError extends Error { constructor(message: string, public readonly data: unknown) { super(message); this.name = 'ApiRequestError'; } }
 
 async function mutate<T>(path: string, method: 'POST'|'PATCH'|'DELETE', body?: unknown, headers: Record<string,string> = {}): Promise<T> {
@@ -71,6 +73,15 @@ export const api = {
   orders: () => get<{ orders: SavedOrder[] }>('/orders'),
   order: (number: string) => get<{ order: SavedOrder }>(`/orders/${encodeURIComponent(number)}`),
   lookupOrder: (orderNumber: string, accessCode: string) => mutate<{ order: SavedOrder }>('/orders/access', 'POST', { orderNumber, accessCode }),
+  staffSession: () => get<{ configured: boolean; authenticated: boolean }>('/staff/session'),
+  staffLogin: (password: string) => mutate<{ authenticated: boolean }>('/staff/login', 'POST', { password }),
+  staffLogout: () => mutate<{ authenticated: boolean }>('/staff/logout', 'POST', {}),
+  staffOrders: (status = '', page = 1) => { const query = new URLSearchParams({ page: String(page) }); if (status) query.set('status', status); return get<{ orders: StaffOrder[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>(`/staff/orders?${query.toString()}`); },
+  staffAssets: () => get<{ assets: string[] }>('/staff/mockup-assets'),
+  publishMockup: (orderNumber: number, itemId: string, details: { previewImage: string; printPosition: string; printColour: string; customText: string }) => mutate<{ mockupId: string; revision: number }>(`/staff/orders/${orderNumber}/items/${itemId}/mockup`, 'POST', details),
+  setOrderStatus: (orderNumber: number, status: 'PROCESSING'|'COMPLETED') => mutate<{ orderNumber: number; status: string }>(`/staff/orders/${orderNumber}/status`, 'POST', { status }),
+  mockup: (id: string) => get<MockupView>(`/mockups/${encodeURIComponent(id)}`),
+  reviewMockup: (id: string, expectedRevision: number, decision: 'approve'|'request_changes', changeRequest = '') => mutate<{ status: string; orderStatus: string }>(`/mockups/${encodeURIComponent(id)}/review`, 'POST', { expectedRevision, decision, changeRequest }),
 };
 
 export const money = (cents: number) => new Intl.NumberFormat('en-SG', { style: 'currency', currency: 'SGD' }).format(cents / 100);

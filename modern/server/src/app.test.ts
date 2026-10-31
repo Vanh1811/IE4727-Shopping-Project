@@ -41,6 +41,21 @@ test('CSRF bootstrap creates a private session token', async () => {
   assert.match(payload.data.csrfToken, /^[a-f0-9]{64}$/);
 });
 
+test('staff session status never reveals the configured password hash', async () => {
+  const response = await fetch(`${baseUrl}/api/v1/staff/session`);
+  assert.equal(response.status, 200);
+  const payload = await response.json() as { data: { configured: boolean; authenticated: boolean }; error: null };
+  assert.equal(typeof payload.data.configured, 'boolean');
+  assert.equal(payload.data.authenticated, false);
+  assert.equal(JSON.stringify(payload).includes('PASSWORD_HASH'), false);
+});
+
+test('staff-only APIs reject guests before looking up orders', async () => {
+  const response = await fetch(`${baseUrl}/api/v1/staff/orders`);
+  assert.equal(response.status, 401);
+  assert.deepEqual(await response.json(), { data: null, error: { code: 'STAFF_AUTH_REQUIRED', message: 'Staff sign-in is required.' } });
+});
+
 test('unknown API route returns JSON', async () => {
   const response = await fetch(`${baseUrl}/api/v1/missing`);
   assert.equal(response.status, 404);

@@ -62,3 +62,18 @@ Cart lines contain only product ID, size, colour and quantity in the session. Su
 | `GET /api/v1/orders/:orderNumber` | Session-scoped guest authorization | Returns only an order number present in the current session. Knowing an order number is insufficient. |
 
 Access codes are 24 cryptographically random bytes (48 lowercase hex characters); Mongo stores only SHA-256. Lookup accepts at most 128 characters and is limited to 10 failed attempts per 15 minutes per client IP. Successful recovery rotates the session ID.
+
+## Stage 6 staff and design workflow
+
+| Method/path | Auth | Behavior |
+|---|---|---|
+| `GET /api/v1/staff/session` | Session | Reports only whether staff access is configured and whether this session is authenticated; never returns the password hash. |
+| `POST /api/v1/staff/login`, `POST /api/v1/staff/logout` | CSRF; login rate limited | Verifies the configured PHP-compatible bcrypt hash, rotates the session, and preserves the guest cart/order grants. |
+| `GET /api/v1/staff/orders` | Staff session | Paginated staff order queue with customer/contact details and per-item design state. |
+| `GET /api/v1/staff/mockup-assets` | Staff session | Lists existing local files under `modern/client/public/images/products`. |
+| `POST /api/v1/staff/orders/:orderNumber/items/:itemId/mockup` | Staff + CSRF | Publishes one preview per order item; only local allowlisted files; revision 1 initially and increments only after a customer change request. |
+| `POST /api/v1/staff/orders/:orderNumber/status` | Staff + CSRF | Only `CONFIRMED → PROCESSING → COMPLETED`, with an atomic compare-and-update. |
+| `GET /api/v1/mockups/:id` | Session-scoped guest access | Returns a mock-up only when its order is authorized in the current session. |
+| `POST /api/v1/mockups/:id/review` | Order owner session + CSRF | Requires exact pending revision; appends review history and transactionally updates mock-up/order state. All items must be approved for `CONFIRMED`. |
+
+Staff auth uses `STAFF_PASSWORD_HASH` from the server environment. Local preview URLs are stored as `/images/products/...`; paths are canonicalized against the modern local asset directory and symlinks/traversal are rejected.
