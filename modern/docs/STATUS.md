@@ -75,6 +75,6 @@ Baseline: `68545781decb4ac6bbebe50e1d592df287e74006` (`main` at kickoff). Branch
 - `npm run test`: PASS — 13 unit/foundation/parser/cart/checkout/access tests.
 - `npm run test:e2e`: PASS — 4 browser checks (home/hero, filtered shop refresh, empty cart and guest lookup form) against the local app using existing Chromium 1248. The app server was launched directly from the already-built output after `npm run dev` hit a transient Node heap failure; browser checks themselves passed.
 - `npm run test:api`: BLOCKED — loopback `f2b_shop_modern_test` cannot connect (`ECONNREFUSED 127.0.0.1:27017`); the expanded session-isolation, wrong-code, generic-error and session-rotation assertions have not run.
-- Commit/push: pending.
+- Commit/push: PASS — `1c86ff6` (`feat(modern): implement guest order access and authorization`), pushed to `feature/modern-react-express-mongo`. Mongo privacy integration remains BLOCKED as recorded above.
 
 Stages 6–8 have not started. Each section will include implementation state, exact verification evidence, blockers and commit SHA.
