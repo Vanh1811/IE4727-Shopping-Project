@@ -1,6 +1,18 @@
 # Modern Version implementation status
 
-Baseline: `68545781decb4ac6bbebe50e1d592df287e74006` (`main` at kickoff). Branch: `feature/modern-react-express-mongo`.
+> **Historical source-branch record:** The Stage 0–8 notes below describe the MongoDB implementation at `feature/modern-react-express-mongo` (`680da84`). They are retained as migration evidence and are not a claim that MongoDB remains the target stack on this branch.
+
+Baseline: `68545781decb4ac6bbebe50e1d592df287e74006` (`main` at kickoff). Source branch: `feature/modern-react-express-mongo`.
+
+## MongoDB to XAMPP MySQL migration (current)
+
+- Branch: `feature/modern-express-mysql`, created from the latest source-branch commit `680da84`.
+- Audit and relational mapping: PASS — see `MYSQL_MIGRATION_AUDIT.md` and `MYSQL_DATA_MAPPING.md`. Completed before persistence changes.
+- Baseline build/typecheck/lint/unit: PASS — build, typecheck, and lint passed; 23 unit/smoke tests passed on 2026-10-31.
+- Baseline API integration: BLOCKED — all four Mongo integration groups report `ECONNREFUSED 127.0.0.1:27017`; no MongoDB service is running.
+- XAMPP MySQL: TCP port `127.0.0.1:3306` is reachable. No database was queried, seeded, initialized, or modified during audit.
+- Protected Base Version: no PHP files or root database files changed; `f2b_shop` was not accessed.
+- Current phase: audit complete; Stage A implementation has not started.
 
 ## Stage 0 — baseline and parity contract
 
