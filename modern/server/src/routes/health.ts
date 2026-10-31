@@ -1,13 +1,11 @@
 import { Router } from 'express';
-import mongoose from 'mongoose';
 import { checkDatabaseReadiness } from '../db/readiness.js';
 
 export const healthRouter = Router();
 
 healthRouter.get('/health', async (_request, response) => {
   const mysql = await checkDatabaseReadiness();
-  const legacyCatalogueReady = mongoose.connection.readyState === 1;
-  const ready = mysql.schemaReady && legacyCatalogueReady;
+  const ready = mysql.schemaReady;
   response.status(ready ? 200 : 503).json({
     data: {
       status: ready ? 'ok' : 'not_ready',

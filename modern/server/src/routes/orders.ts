@@ -51,8 +51,12 @@ ordersRouter.post('/orders/access', lookupLimiter, requireCsrf, async (request, 
     response.status(401).json({ data: null, error: { code: 'ORDER_ACCESS_INVALID', message: 'We could not find an order with those access details.' } });
     return;
   }
-  await new Promise<void>((resolve, reject) => request.session.regenerate((error) => error ? reject(error) : resolve()));
-  request.session.authorizedOrderNumbers = [orderNumber];
+  const prior = request.session;
+  const saved = { cart: prior.cart, checkoutLast: prior.checkoutLast, authorizedOrderNumbers: prior.authorizedOrderNumbers ?? [] };
+  await new Promise<void>((resolve, reject) => prior.regenerate((error) => error ? reject(error) : resolve()));
+  if (saved.cart) request.session.cart = saved.cart;
+  if (saved.checkoutLast) request.session.checkoutLast = saved.checkoutLast;
+  request.session.authorizedOrderNumbers = [...new Set([...saved.authorizedOrderNumbers, orderNumber])];
   response.json({ data: { order: orderDto(order) }, error: null });
 });
 

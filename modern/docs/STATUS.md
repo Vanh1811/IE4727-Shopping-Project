@@ -35,6 +35,13 @@ Baseline: `68545781decb4ac6bbebe50e1d592df287e74006` (`main` at kickoff). Source
 - Stage C `npm test`: PASS — 29 tests, including checkout validation and stable/conflicting request fingerprint checks.
 - Stage C `npm run test:e2e -- --timeout=15000`: PASS — all 6 Chromium checks.
 - Stage C MySQL order, rollback, snapshot, guest-access, and concurrent-idempotency integration: BLOCKED — XAMPP rejects the available `root`/empty-password login. No MySQL order was created, and neither development nor test DB was initialized.
+- Stage C commit/push: PASS — `e795366` (`refactor(modern): port checkout and order access to MySQL`), pushed to `feature/modern-express-mysql`.
+- Stage D implementation: PASS — staff order pagination/status changes, mock-up publish/revision, customer review history, approval aggregation, and mock-up authorization now use parameterized SQL and guarded InnoDB transactions/row locks. Numeric SQL IDs preserve the REST string ID shape. Guest session rotation now preserves cart, prior grants, and checkout confirmation state. Mongo is no longer needed to start the Modern runtime; health is based on MySQL schema readiness only.
+- Stage D schema: PASS — migration `003_mockup_order_item_ownership.sql` adds a composite ownership FK so a mock-up cannot refer to an item from another order.
+- Stage D `npm run build`, `npm run typecheck`, `npm run lint`: PASS.
+- Stage D `npm test`: PASS — 29 tests, including existing status-transition, revision, partial approval, bcrypt, and local asset validation tests.
+- Stage D `npm run test:e2e -- --timeout=15000`: PASS — all 6 Chromium checks. An initial invocation used an incorrect local Chromium path and failed to launch; rerun with `chromium-1248\\chrome-win64\\chrome.exe` passed.
+- Stage D MySQL staff/customer lifecycle and ownership/locking integration: BLOCKED — no valid XAMPP credentials are available; no SQL fixtures or orders were created.
 
 ## Stage 0 — baseline and parity contract
 
