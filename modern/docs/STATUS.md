@@ -50,7 +50,7 @@ Baseline: `68545781decb4ac6bbebe50e1d592df287e74006` (`main` at kickoff). Branch
 - `npm run test`: PASS — 8 server/foundation/parser/filter tests.
 - `npm run test:e2e`: PASS — 2 browser checks (home brand/hero and shop deep-link refresh) using the existing Chromium 1248 executable. The local test server ran with Mongo unset; pages were checked through their loading state, not seeded product rendering.
 - Mongo-backed page data and visual comparison with the PHP site: BLOCKED — no local MongoDB service/seed and no legacy PHP browser session; see Stage 0 and Stage 2 notes.
-- Commit/push: pending.
+- Commit/push: PASS — storefront implementation `1214427` (`feat(modern-storefront): build home catalogue and product pages`), pushed to `feature/modern-react-express-mongo`.
 
 ## Later stages
 
