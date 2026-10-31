@@ -42,8 +42,9 @@ The checks were run with npm cache/temp redirected under ignored `modern/node_mo
 - Stage D staff/mock-ups: `227d2b7` — `refactor(modern): port staff mockup workflow to MySQL`
 - Stage E local receipt: `a57e166` — `refactor(modern): preserve local receipts in MySQL`
 - Stage F cleanup/docs: `5877236` — `test(modern): remove Mongo and finalize MySQL migration`.
+- DTO compatibility follow-up: `96dd3b2` — `fix(modern): preserve order and review DTO identifiers`.
 
-All commits were pushed only to `feature/modern-express-mysql`. No pull request was created or merged.
+The final build/typecheck/lint/unit suite was rerun after the DTO follow-up: 30 unit tests passed. All commits were pushed only to `feature/modern-express-mysql`. No pull request was created or merged.
 
 ## Windows handoff
 

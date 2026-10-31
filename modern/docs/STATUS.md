@@ -64,6 +64,7 @@ Baseline: `68545781decb4ac6bbebe50e1d592df287e74006` (`main` at kickoff). Source
 - Base PHP source: PASS — no PHP or root database files were modified. Development/test DB separation is explicit; `f2b_shop` remains protected.
 - Final migration completion: code and cleanup complete; persisted SQL parity, populated customer/staff journeys, PHP visual comparison, and local SMTP acceptance remain blocked by unavailable credentials/runtime/receiver as listed in `MYSQL_MIGRATION_RESULTS.md` and `PARITY_RESULTS.md`.
 - Stage F commit/push: PASS — `5877236` (`test(modern): remove Mongo and finalize MySQL migration`), pushed to `feature/modern-express-mysql`.
+- Stage F DTO parity fix and final verification commit/push: PASS — `96dd3b2` (`fix(modern): preserve order and review DTO identifiers`); final build/typecheck/lint/unit rerun passed afterward.
 
 ## Stage 0 — baseline and parity contract
 
