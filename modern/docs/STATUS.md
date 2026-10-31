@@ -89,4 +89,4 @@ Stages 7–8 have not started. Each section will include implementation state, e
 - `npm run test:e2e`: PASS — 5 browser checks, including the staff-not-configured message; app server launched directly from built output. No staff password or Mongo database was configured for this browser run.
 - `npm run test:api` against loopback `f2b_shop_modern_test`: BLOCKED — `ECONNREFUSED 127.0.0.1:27017`. The four guarded suites include catalogue, cart/checkout, guest session isolation, staff login, first publish, change request, stale revision rejection, revision publish, customer approval, staff processing/completion, and invalid transition. None of these persistent assertions ran.
 - Full staff–customer–staff lifecycle, transaction behavior, and order/mock-up persistence: BLOCKED until the local MongoDB replica set is available.
-- Commit/push: pending.
+- Commit/push: PASS — `46f31b7` (`feat(modern): port staff mockup and review workflow`), pushed to `feature/modern-react-express-mongo`. Mongo lifecycle gate remains BLOCKED as recorded above.
