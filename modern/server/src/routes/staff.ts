@@ -196,13 +196,17 @@ staffRouter.post('/mockups/:id/review', requireCsrf, async (request, response) =
   let nextOrderStatus: 'CHANGES_REQUESTED'|'DESIGN_REVIEW'|'CONFIRMED' = 'DESIGN_REVIEW';
   try {
     await connection.beginTransaction();
+    const [initialMocks] = await connection.execute<(RowDataPacket & { id: number; order_id: number })[]>(
+      'SELECT id, order_id FROM mockups WHERE id = ? LIMIT 1', [id],
+    );
+    const initial = initialMocks[0];
+    if (!initial || !request.session.authorizedOrderNumbers?.includes(Number(initial.order_id))) throw new ApiError(404, 'MOCKUP_NOT_FOUND', 'That review is not available to this guest session.');
+    const [orders] = await connection.execute<(RowDataPacket & { status: string })[]>('SELECT status FROM orders WHERE id = ? FOR UPDATE', [initial.order_id]);
     const [mocks] = await connection.execute<(RowDataPacket & { id: number; order_id: number; order_item_id: number; status: string; revision: number })[]>(
-      'SELECT id, order_id, order_item_id, status, revision FROM mockups WHERE id = ? FOR UPDATE', [id],
+      'SELECT id, order_id, order_item_id, status, revision FROM mockups WHERE id = ? AND order_id = ? FOR UPDATE', [id, initial.order_id],
     );
     const mockup = mocks[0];
-    if (!mockup || !request.session.authorizedOrderNumbers?.includes(Number(mockup.order_id))) throw new ApiError(404, 'MOCKUP_NOT_FOUND', 'That review is not available to this guest session.');
-    const [orders] = await connection.execute<(RowDataPacket & { status: string })[]>('SELECT status FROM orders WHERE id = ? FOR UPDATE', [mockup.order_id]);
-    const [items] = await connection.execute<(RowDataPacket & { id: number })[]>('SELECT id FROM order_items WHERE order_id = ? ORDER BY id', [mockup.order_id]);
+    const [items] = await connection.execute<(RowDataPacket & { id: number })[]>('SELECT id FROM order_items WHERE order_id = ? ORDER BY id', [initial.order_id]);
     if (!orders[0] || !items.some((item) => Number(item.id) === Number(mockup.order_item_id))) throw new ApiError(404, 'MOCKUP_NOT_FOUND', 'That review is not available to this guest session.');
     if (mockup.status !== 'READY_FOR_REVIEW' || Number(mockup.revision) !== expectedRevision) throw new ApiError(409, 'REVISION_STALE', 'This mock-up revision is no longer awaiting review.');
     const nextMockStatus = decision === 'approve' ? 'APPROVED' : 'CHANGES_REQUESTED';

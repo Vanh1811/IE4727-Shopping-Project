@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { ApiError } from '../middleware/errors.js';
-import { CartMap, calculateTotals } from '../cart/service.js';
+import { CartMap, CartLine, calculateTotals } from '../cart/service.js';
 import { findProductsByIds } from '../catalogue/repository.js';
 import { hashAccessCode } from './access.js';
 import { centsToDecimal } from '../db/money.js';
@@ -14,6 +14,11 @@ const bytes = (value: string) => Buffer.byteLength(value, 'utf8');
 export type CheckoutValues = { full_name: string; email: string; phone: string; postal_code: string; delivery_address: string; special_instructions: string };
 export function checkoutValuesFingerprint(values: CheckoutValues) {
   return createHash('sha256').update(JSON.stringify(values)).digest('hex');
+}
+export function checkoutCartLinesValid(lines: CartLine[]) {
+  return lines.length > 0 && lines.every((line) => Number.isSafeInteger(line.productId) && line.productId > 0 &&
+    Number.isSafeInteger(line.quantity) && line.quantity >= 1 && line.quantity <= 99 &&
+    ['S','M','L','XL','ONE SIZE'].includes(line.size) && typeof line.colour === 'string' && line.colour.length > 0 && line.colour.length <= 50);
 }
 
 export function validateCheckout(input: unknown) {
@@ -33,15 +38,19 @@ export function validateCheckout(input: unknown) {
 export async function createOrder(cart: CartMap, values: CheckoutValues, idempotencyKey: string) {
   const lines = Object.values(cart);
   if (!lines.length) throw new ApiError(409, 'EMPTY_CART', 'Your bag is empty.');
+  if (!checkoutCartLinesValid(lines)) {
+    throw new ApiError(409, 'CART_CHANGED', 'A product in your bag is no longer available. Review your bag and try again.');
+  }
   const products = await findProductsByIds(lines.map((line) => line.productId));
   const productById = new Map(products.map((product) => [product.legacyId, product]));
   const items = lines.map((line) => {
     const product = productById.get(line.productId);
     if (!product || product.colour !== line.colour || (product.categorySlug === 'accessories') !== (line.size === 'ONE SIZE')) throw new ApiError(409, 'CART_CHANGED', 'A product in your bag is no longer available. Review your bag and try again.');
-    return { id: 0, productId: product.legacyId, productSlug: product.slug, productName: product.name, image: product.images[0]!, size: line.size, colour: line.colour, unitPriceCents: product.priceCents, quantity: line.quantity, lineTotalCents: product.priceCents * line.quantity };
+    if (!product.images[0]) throw new ApiError(409, 'CART_CHANGED', 'A product in your bag is no longer available. Review your bag and try again.');
+    return { id: 0, productId: product.legacyId, productSlug: product.slug, productName: product.name, image: product.images[0], size: line.size, colour: line.colour, unitPriceCents: product.priceCents, quantity: line.quantity, lineTotalCents: product.priceCents * line.quantity };
   });
   const totals = calculateTotals(items.map(({ unitPriceCents, quantity }) => ({ priceCents: unitPriceCents, quantity })));
-  const checkoutFingerprint = createHash('sha256').update(JSON.stringify({ valuesFingerprint: checkoutValuesFingerprint(values), items: items.map(({ productId, size, colour, quantity, unitPriceCents }) => ({ productId, size, colour, quantity, unitPriceCents })) })).digest('hex');
+  const checkoutFingerprint = createHash('sha256').update(JSON.stringify({ valuesFingerprint: checkoutValuesFingerprint(values), items: items.map(({ productId, size, colour, quantity }) => ({ productId, size, colour, quantity })) })).digest('hex');
   const existing = await findOrderByIdempotencyKey(idempotencyKey);
   if (existing) return existing.checkoutFingerprint === checkoutFingerprint
     ? { orderNumber: existing.orderNumber, created: false, conflict: false }

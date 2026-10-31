@@ -1,10 +1,10 @@
 # Modern Version implementation status
 
-> **Historical source-branch record:** The Stage 0–8 notes below describe the MongoDB implementation at `feature/modern-react-express-mongo` (`680da84`). They are retained as migration evidence and are not a claim that MongoDB remains the target stack on this branch.
+> **Historical source-branch record:** The Stage 0–8 notes below describe the implementation at `feature/modern-react-express-mongo` (`680da84`). They are retained as source-branch history and are not instructions or claims about the final stack on this branch. The migration-stage record below documents the replacement.
 
 Baseline: `68545781decb4ac6bbebe50e1d592df287e74006` (`main` at kickoff). Source branch: `feature/modern-react-express-mongo`.
 
-## MongoDB to XAMPP MySQL migration (current)
+## MongoDB to XAMPP MySQL migration stages
 
 - Branch: `feature/modern-express-mysql`, created from the latest source-branch commit `680da84`.
 - Audit and relational mapping: PASS — see `MYSQL_MIGRATION_AUDIT.md` and `MYSQL_DATA_MAPPING.md`. Completed before persistence changes.
@@ -12,23 +12,23 @@ Baseline: `68545781decb4ac6bbebe50e1d592df287e74006` (`main` at kickoff). Source
 - Baseline API integration: BLOCKED — all four Mongo integration groups report `ECONNREFUSED 127.0.0.1:27017`; no MongoDB service is running.
 - XAMPP MySQL: TCP port `127.0.0.1:3306` is reachable. No database was queried, seeded, initialized, or modified during audit.
 - Protected Base Version: no PHP files or root database files changed; `f2b_shop` was not accessed.
-- Stage A implementation: PASS for code — `mysql2/promise` pool, database allowlist guards, versioned Modern-only DDL, non-destructive `db:init`, connection/schema preflight, readiness probe, parameterized MySQL session store with expiry pruning, and explicit test-only MemoryStore injection are implemented. `connect-mongo` was removed; Mongoose remains temporarily for unmigrated features.
+- Stage A implementation: PASS for code — `mysql2/promise` pool, database allowlist guards, versioned Modern-only DDL, non-destructive `db:init`, connection/schema preflight, readiness probe, parameterized MySQL session store with expiry pruning, and explicit test-only MemoryStore injection are implemented. `connect-mongo` was removed in Stage A; Mongoose was removed during final cleanup after all runtime consumers migrated.
 - Stage A `npm run build`: PASS with `NODE_OPTIONS=--max-old-space-size=768` after one earlier Node heap allocation failure at the default limit.
 - Stage A `npm run typecheck`: PASS.
 - Stage A `npm run lint`: PASS.
 - Stage A `npm run test`: PASS — 27 tests, including session serialization/expiry, SQL parameterization, privilege parsing, and Base database rejection.
 - Stage A `npm run test:e2e`: PASS — 6 Chromium browser checks against the existing local app; UI code was not changed.
 - Stage A `npm run db:preflight`: BLOCKED — XAMPP TCP listener responds, but local `root` with empty password is rejected (`Access denied ... using password: NO`). No `.env` exists and no database/schema was created.
-- Stage A `npm run test:api`: BLOCKED — the legacy integration harness still requires MongoDB (`ECONNREFUSED 127.0.0.1:27017`) and MySQL test credentials; it will be replaced during Stage F.
+- Stage A `npm run test:api`: BLOCKED at that checkpoint — the source-branch integration harness still required MongoDB. Stage F replaced it with the guarded MySQL test harness; that harness now reaches its test-DB readiness gate but remains blocked by local MySQL authentication/schema availability.
 - Stage A MySQL schema/session integration: BLOCKED until valid local credentials are placed in ignored `server/.env`; do not paste credentials into chat or commit them. `db:init` was not run and no schema was created.
-- Current phase: Stage A code complete; database-backed verification awaits local MySQL authentication. Stages B–F are next.
+- At the Stage A checkpoint, the remaining B–F stages were pending. They have since been implemented and committed as recorded below.
 - Stage A commit/push: PASS — `979ae2a` (`feat(modern): introduce MySQL schema and session foundation`), pushed to `feature/modern-express-mysql`.
 - Stage B implementation: PASS — catalogue list/detail/home/meta queries and current cart/checkout product lookups now use parameterized MySQL; fixed sort allowlist, LIKE wildcard escaping, exact decimal price bounds, and non-destructive SQL catalogue upserts preserve the existing endpoints and DTOs.
 - Stage B `npm run build`, `npm run typecheck`, `npm run lint`: PASS.
 - Stage B `npm run test`: PASS — 28 tests, including SQL catalogue filter behavior and exact decimal conversion.
 - Stage B `npm run test:e2e`: PASS — all 6 Chromium checks against the local Modern server.
 - Stage B `npm run db:seed`: BLOCKED — local XAMPP rejects `root` with an empty password (`Access denied ... using password: NO`). Seed performed no writes. The catalogue API against persisted SQL rows and the seed replay remain unverified until valid credentials are configured in ignored `modern/server/.env`.
-- Current phase: Stage B code complete; continue with Stage C SQL order persistence. MySQL-backed behavior remains environment-blocked until credentials/schema are available.
+- Stage B checkpoint: code complete; continue with Stage C SQL order persistence. MySQL-backed behavior remains environment-blocked until credentials/schema are available.
 - Stage B commit/push: PASS — `a41629c` (`feat(modern): migrate catalogue reads and seed to MySQL`), pushed to `feature/modern-express-mysql`.
 - Stage C implementation: PASS — checkout now writes order headers and immutable item snapshots in one InnoDB transaction, stores only the SHA-256 guest access hash, allocates stable numeric order/item IDs, and uses a unique key plus request fingerprint for idempotency and conflicting-key rejection. Cart/confirmation/guest order routes and local receipt reads/status claims use SQL repositories.
 - Stage C `npm run build`, `npm run typecheck`, `npm run lint`: PASS.
@@ -48,6 +48,21 @@ Baseline: `68545781decb4ac6bbebe50e1d592df287e74006` (`main` at kickoff). Source
 - Stage E `npm run build`, `npm run typecheck`, `npm run lint`: PASS.
 - Stage E `npm test`: PASS — 29 tests, including local recipient/transport fail-closed checks and receipt snapshot formatting without customer email.
 - Stage E SQL receipt claim and local SMTP acceptance: BLOCKED — MySQL authentication is unavailable and no local SMTP receiver is configured; no message was sent.
+- Stage E commit/push: PASS — `a57e166` (`refactor(modern): preserve local receipts in MySQL`), pushed to `feature/modern-express-mysql`.
+
+## Stage F — cleanup, SQL integration harness, and final documentation
+
+- Implementation: PASS — all runtime persistence now uses loopback XAMPP MySQL through `mysql2/promise`; removed all Mongoose models, dependency, Mongo URI, startup connection, and legacy test setup. Kept React 19/Tailwind 3/Express 5, REST routes/DTOs, local-only disabled-by-default receipt, and no payment gateway.
+- Test harness: PASS for code — rewrote API integration setup to require exactly `NODE_ENV=test`, `DB_NAME=f2b_shop_modern_test`, a ready migrated schema and the seeded catalogue. It creates unique checkout keys and scopes product/order/session cleanup to its own fixtures; it never drops databases/tables.
+- Documentation: PASS — refreshed the Windows XAMPP runbook, data mapping, API contract, parity report, root README Modern entry, and migration results. Mongo names remain only in clearly labeled source-history/audit context.
+- `npm run test:api`: BLOCKED — test setup requires the isolated MySQL schema and seed; preflight with the available root/empty password is rejected by XAMPP (`Access denied ... using password: NO`). The four API integration groups did not run, and no DB data changed.
+- Final `npm run build`, `npm run typecheck`, `npm run lint`: PASS.
+- Final `npm test`: PASS — 30 tests, 0 failures.
+- Final `npm run test:e2e -- --timeout=15000`: PASS — 6 Chromium browser checks.
+- Dependency/source audit: PASS — no active Mongo references or Mongo packages in `modern/server`, package manifests/lockfile, or `.env.example`; references retained in source-branch history/audit only.
+- `npm run db:init`, `npm run db:seed`: BLOCKED for the same XAMPP authentication error; no Modern schema or catalogue was created.
+- Base PHP source: PASS — no PHP or root database files were modified. Development/test DB separation is explicit; `f2b_shop` remains protected.
+- Final migration completion: code and cleanup complete; persisted SQL parity, populated customer/staff journeys, PHP visual comparison, and local SMTP acceptance remain blocked by unavailable credentials/runtime/receiver as listed in `MYSQL_MIGRATION_RESULTS.md` and `PARITY_RESULTS.md`.
 
 ## Stage 0 — baseline and parity contract
 

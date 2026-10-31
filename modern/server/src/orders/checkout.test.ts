@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 process.env.SESSION_SECRET = 'checkout-service-test-secret-at-least-32-characters';
-const { checkoutValuesFingerprint, validateCheckout } = await import('./checkout.js');
+const { checkoutCartLinesValid, checkoutValuesFingerprint, validateCheckout } = await import('./checkout.js');
 
 const valid = { full_name: 'Ada Customer', email: 'ada@example.test', phone: '+65 8123 4567', postal_code: '123456', delivery_address: '1 Sample Street', special_instructions: '' };
 
@@ -27,4 +27,13 @@ test('checkout preserves the PHP validation messages and rejects controls and li
 test('checkout idempotency request fingerprint is stable and changes with submitted contact data', () => {
   assert.equal(checkoutValuesFingerprint(valid), checkoutValuesFingerprint({ ...valid }));
   assert.notEqual(checkoutValuesFingerprint(valid), checkoutValuesFingerprint({ ...valid, email: 'other@example.test' }));
+});
+
+test('checkout revalidates session cart quantity, variant and colour bounds', () => {
+  const line = { productId: 1, size: 'M', colour: 'Navy Blue', quantity: 1 };
+  assert.equal(checkoutCartLinesValid([line]), true);
+  assert.equal(checkoutCartLinesValid([{ ...line, quantity: 99 }]), true);
+  assert.equal(checkoutCartLinesValid([{ ...line, quantity: 100 }]), false);
+  assert.equal(checkoutCartLinesValid([{ ...line, size: 'XXL' }]), false);
+  assert.equal(checkoutCartLinesValid([{ ...line, colour: 'x'.repeat(51) }]), false);
 });

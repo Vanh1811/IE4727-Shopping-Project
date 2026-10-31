@@ -6,7 +6,6 @@ import session from 'express-session';
 process.env.NODE_ENV = 'test';
 process.env.SESSION_SECRET = 'stage-one-test-secret-with-at-least-32-characters';
 process.env.CLIENT_ORIGIN = 'http://127.0.0.1:5173';
-delete process.env.MONGODB_URI;
 
 const { createApp } = await import('./app.js');
 let server: Server;

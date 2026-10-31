@@ -1,5 +1,7 @@
 # MongoDB to XAMPP MySQL migration audit
 
+> Historical source inventory: this audit records the state before persistence changes. The completed migration and current test results are in [STATUS.md](STATUS.md), [MYSQL_MIGRATION_RESULTS.md](MYSQL_MIGRATION_RESULTS.md), and [PARITY_RESULTS.md](PARITY_RESULTS.md). Mongo names below refer only to the source branch being replaced; they are not setup instructions for this branch.
+
 Audit date: 2026-10-31  
 Source branch: `feature/modern-react-express-mongo` at `680da84`  
 Migration branch: `feature/modern-express-mysql`
@@ -25,7 +27,7 @@ The original `npm run build` attempt failed before compilation because the syste
 
 | Mongo usage | Current files / behavior | Planned MySQL replacement |
 | --- | --- | --- |
-| Runtime package and lock data | `modern/server/package.json`: `mongoose`, `connect-mongo`; `modern/package-lock.json`: those packages and transitive `mongodb` drivers. | Add `mysql2`; after every consumer is replaced, uninstall Mongoose/connect-mongo and regenerate the workspace lockfile. |
+| Runtime package and lock data | At audit time `modern/server/package.json` contained `mongoose`, `connect-mongo`; the lockfile contained their transitive driver. | `mysql2/promise` is the sole SQL driver; `mongoose`, `connect-mongo` and MongoDB packages have been removed from the final package manifests and lockfile. |
 | Connection configuration | `server/src/config/env.ts`: optional `MONGODB_URI`, production requirement. `server/src/server.ts`: asynchronously connects after starting Express. | Validated `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, with safe loopback defaults only in `.env.example`; await pool startup/readiness and sanitize connection errors. |
 | Health/readiness | `server/src/routes/health.ts`: Mongoose connection state; returns 200 only for configured+connected. | `SELECT 1` plus schema/migration readiness from a MySQL health service; preserve `{data,error}` and sanitized 503 state. |
 | Express sessions | `server/src/app.ts`: conditional `MongoStore`; without URI Express falls back to `MemoryStore`. Session fields are declared in `server/src/types/express-session.d.ts`. | A MySQL-backed `express-session` store with parameterized writes, expiration, pruning, and session ID rotation. Memory store remains only in isolated unit tests if a session store is injected explicitly. |
@@ -37,7 +39,7 @@ The original `npm run build` attempt failed before compilation because the syste
 | Staff order operations | `routes/staff.ts` uses Mongoose queries, `.skip/.limit`, `countDocuments`, item ObjectIds, `findOneAndUpdate`. | Parameterized joins and count pagination; stable numeric order-item IDs; guarded atomic updates and row locks inside MySQL transactions. Preserve staff authorization and DTO allowlist. |
 | Mock-up/review workflow | `models/Mockup.ts` stores review subdocuments; route transactions use Mongoose session; item/mockup IDs are ObjectIds. `staff/mockups.ts` resolves local asset paths. | `mockups` unique on `order_item_id`; append-only `mockup_reviews`; numeric stable mockup ID. Lock order/item/mockup rows and enforce expected revision/status in SQL. Retain local asset allowlist. |
 | Receipt claim/state | `models/Order.ts`, `mail/receipt.ts`, checkout and confirmation routes use order snapshots, Mongo update claims and email status. SMTP happens after checkout transaction. | Load only committed `orders`/`order_items` snapshots. Atomic SQL claim/status and timestamp. Keep SMTP outside SQL transactions and non-gating; default disabled/loopback-only. |
-| Integration setup/cleanup | `catalogue/api.integration.ts` connects Mongoose, validates exact loopback `f2b_shop_modern_test`, deletes test collections, seeds fixture, starts Express and exercises APIs. | Exact DB/host guards in MySQL harness; scoped cleanup/truncation only inside `f2b_shop_modern_test` after validation. Never drop a database or touch `f2b_shop`/development data. |
+| Integration setup/cleanup | At audit time `catalogue/api.integration.ts` connected Mongoose, validated a test URI, deleted collections, and created fixtures. | Final harness requires loopback `f2b_shop_modern_test`, a migrated schema and source seed; it creates unique orders and removes only its own order/session rows. It never drops tables or touches the development/Base databases. |
 | Unit/API contracts | `app.test.ts` removes `MONGODB_URI`; `seedParser.test.ts` asserts “Mongo query plans”; API integration uses Mongo collection imports. | Unit tests remain DB-independent and cover SQL builder/DTO/validation. Integration tests use mysql2 against only guarded test DB. |
 | Runtime/setup docs | `.env.example`; `SETUP_WINDOWS.md`; `API_CONTRACT.md`; `DATA_MAPPING.md`; `BASELINE_PARITY.md`; `STATUS.md`; `PARITY_RESULTS.md` contain Mongo URI, replica-set and Mongo persistence instructions/claims. | Replace current setup/contract/data mapping and status with XAMPP MySQL instructions. Preserve branch-history facts only as labeled historical context; no active Mongo setup instructions. |
 
@@ -49,4 +51,4 @@ Important source constraints include InnoDB transactions, `DECIMAL(10,2)` money,
 
 ## Audit boundary
 
-No connection was made to `f2b_shop`; no schema, seed, migration, customer data, or credentials were read from MySQL. No PHP files changed. This audit is complete; implementation proceeds in separate, reviewable stages.
+No connection was made to `f2b_shop`; no schema, seed, migration, customer data, or credentials were read from MySQL during the audit. No PHP files changed. The staged implementation followed this audit in the same feature branch.

@@ -30,7 +30,7 @@ function text(value: string, fallback = '') {
   return value.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '').replace(/[\r\n]+/g, ' ').trim() || fallback;
 }
 
-const formatMoney = (cents: number) => `$${(cents / 100).toFixed(2)}`;
+const formatMoney = (cents: number) => `$${Math.floor(cents / 100)}.${String(cents % 100).padStart(2, '0')}`;
 
 type ReceiptOrder = {
   orderNumber: number; fullName: string; status: string; createdAt: Date;

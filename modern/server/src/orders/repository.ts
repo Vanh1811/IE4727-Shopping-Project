@@ -1,6 +1,6 @@
 import type { PoolConnection, RowDataPacket } from 'mysql2/promise';
 import { pool } from '../db/pool.js';
-import { decimalToCents } from '../db/money.js';
+import { centsToDecimal, decimalToCents } from '../db/money.js';
 
 export type OrderLine = {
   id: number; productId: number; productSlug: string; productName: string; image: string;
@@ -147,7 +147,7 @@ export async function insertOrderLines(connection: PoolConnection, orderNumber: 
       `INSERT INTO order_items (order_id, product_id, product_slug, product_name, image, size, colour, unit_price, quantity, line_total)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [orderNumber, line.productId, line.productSlug, line.productName, line.image, line.size, line.colour,
-        (line.unitPriceCents / 100).toFixed(2), line.quantity, (line.lineTotalCents / 100).toFixed(2)],
+        centsToDecimal(line.unitPriceCents), line.quantity, centsToDecimal(line.lineTotalCents)],
     );
   }
 }

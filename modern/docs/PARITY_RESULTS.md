@@ -1,35 +1,28 @@
 # Modern Version parity results
 
 Date: 2026-10-31  
-Branch: `feature/modern-react-express-mongo`
+Branch: `feature/modern-express-mysql`
 
 ## Verification summary
 
 | Area | Result | Evidence |
 | --- | --- | --- |
-| Production build | PASS | `npm run build` compiled Express and generated the Vite production bundle. |
-| Type checking | PASS | `npm run typecheck` passed for server and client. |
-| Lint | PASS | `npm run lint` passed for server and client. |
-| Unit tests | PASS | `npm run test`: 23 passed, 0 failed. Includes source-compatible catalogue parsing/filtering, price rounding, checkout validation, guest access hashing, staff bcrypt, order transitions, mock-up revision rules, and local receipt safeguards. |
-| Browser tests | PASS | `node ./node_modules/@playwright/test/cli.js test -c e2e/playwright.config.ts`: 6 passed. Covers home branding, catalogue URL refresh, cart empty state, lookup credential URL privacy, unconfigured staff state, and keyboard skip-link use. Browser ran using the installed Chromium 1248 executable. |
-| Desktop/mobile capture | PARTIAL | Modern home screenshots at 1440×900 and 390×844 are in `parity-screenshots/`. They show the Modern Version with the API-backed home shelves still loading because MongoDB is unavailable. |
-| Mongo-backed API and staff/customer journeys | BLOCKED | `npm run test:api` compiled successfully, then all four integration groups stopped at `ECONNREFUSED 127.0.0.1:27017`. A local MongoDB replica set and seeded test database are unavailable. |
-| Receipt delivery | BLOCKED | No loopback SMTP listener was available on ports 1025 or 25. The receipt remains disabled by default; no email was sent. |
-| PHP/MySQL differential and visual comparison | BLOCKED | No local legacy PHP/MySQL runtime or baseline browser session is available. Existing PHP files were left unchanged. |
+| Build, types and lint | PASS | Final cleanup checkpoint: `npm run build`, `npm run typecheck`, and `npm run lint` passed. |
+| Unit tests | PASS | `npm test`: 29 passed, 0 failed. Covers catalogue SQL filters, integer-cent conversion, sessions, checkout validation/idempotency fingerprint, staff state transitions, mock-up validation, guest hashing, and receipt safeguards. |
+| Browser tests | PASS | `npm run test:e2e -- --timeout=15000`: 6 Chromium checks passed against local Modern UI. Checks home assets, nested route refresh, empty cart, order lookup privacy, unconfigured staff message, and keyboard skip link. These smoke checks do not create orders or prove MySQL-backed workflows. |
+| XAMPP connection | PARTIAL | Port `127.0.0.1:3306` accepts TCP connections. Authentication with the available `root`/empty-password settings is rejected (`Access denied ... using password: NO`). No development or test database was initialized or seeded. |
+| SQL API/customer/staff integration | BLOCKED | `npm run test:api` uses only `f2b_shop_modern_test`, but readiness is unavailable because no valid XAMPP credentials/schema are configured. Its four integration groups did not reach API assertions. |
+| Seeded catalogue and transactional workflows | BLOCKED | `db:seed`, order snapshot/rollback/idempotency, guest authorization, staff/mock-up lifecycle, and SQL receipt claims require valid XAMPP credentials and migrated schemas. No DB writes occurred. |
+| Visual comparison with PHP | BLOCKED | No PHP/MySQL browser runtime was available for matching populated page screenshots. Historical source-branch screenshots are not evidence of current SQL data parity. |
+| Local receipt acceptance | BLOCKED | No approved loopback SMTP receiver was configured; mail stayed disabled and no message was sent. |
 
-## Visual and accessibility review
+The six browser checks confirm the React application shell and static UI behavior. They do not establish catalogue rendering or persistence parity because no authenticated SQL connection was available. Source data parity is defined by the reviewed PHP/MySQL seed and behavior in [BASELINE_PARITY.md](BASELINE_PARITY.md) and [MYSQL_DATA_MAPPING.md](MYSQL_DATA_MAPPING.md).
 
-The desktop and mobile captures were reviewed. The home hero, image crop, text hierarchy, category cards, navigation, and responsive two-column category grid render at both viewport sizes. API-backed product counts and product shelves are unresolved in the captures because the Mongo service is not running; these captures are not evidence of data parity with the Base Version.
+## Remaining environment checks
 
-Desktop (1440×900): [home-desktop.png](parity-screenshots/home-desktop.png)  
-Mobile (390×844): [home-mobile.png](parity-screenshots/home-mobile.png)
+- Configure valid XAMPP credentials in ignored `modern/server/.env`, run `db:preflight`, `db:init`, and `db:seed` against `f2b_shop_modern`, then verify populated catalogue endpoints and UI.
+- In a separate process, set `NODE_ENV=test` and `DB_NAME=f2b_shop_modern_test`, run the same guarded setup/seed commands, then `npm run test:api`.
+- Start the PHP Base Version and compare populated pages and workflows at desktop and mobile sizes.
+- Obtain course approval and configure a loopback-only local SMTP receiver before receipt acceptance checks.
 
-The browser suite checks the labeled skip-to-main link with keyboard focus and activation. Forms and navigation use semantic labels, headings, landmarks, buttons, and links. A full keyboard and screen-reader review of populated checkout, customer order, mock-up review, and staff pages remains blocked with the unavailable persistent test environment.
-
-## Open verification gaps
-
-- Start a disposable MongoDB replica set, run the guarded SQL seed, and rerun `npm run test:api` plus customer/staff browser journeys.
-- Start the PHP/MySQL Base Version, capture matching pages at 1440×900 and 390×844, and compare populated routes and behavior.
-- Obtain lecturer approval and start the course-approved loopback SMTP receiver before verifying accepted receipt content and persisted delivery state.
-
-No real payment integration was added. No external email destination was contacted. This report records runnable checks and environment blockers; it does not mark the full parity gate as passed.
+No real payment integration was added. No external email destination was contacted. This report records actual runnable results and blockers; the full parity gate is not marked passed.
