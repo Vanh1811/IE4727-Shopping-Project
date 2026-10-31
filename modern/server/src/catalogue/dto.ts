@@ -1,7 +1,7 @@
-import type { PopulatedProduct } from '../models/Product.js';
+import type { CatalogueProduct } from './repository.js';
 import { colourHex, roundLegacy } from './service.js';
 
-export function productDto(product: PopulatedProduct) {
+export function productDto(product: CatalogueProduct) {
   const originalPriceCents = product.originalPriceCents ?? null;
   const discountPercent = originalPriceCents !== null && originalPriceCents > product.priceCents
     ? roundLegacy((1 - product.priceCents / originalPriceCents) * 100)

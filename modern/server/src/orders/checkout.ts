@@ -2,9 +2,9 @@ import { randomBytes } from 'node:crypto';
 import { Types } from 'mongoose';
 import { ApiError } from '../middleware/errors.js';
 import { CartMap, calculateTotals } from '../cart/service.js';
-import { Product } from '../models/Product.js';
 import { Order } from '../models/Order.js';
 import { Counter } from '../models/Counter.js';
+import { findProductsByIds } from '../catalogue/repository.js';
 import { hashAccessCode } from './access.js';
 
 // Mirrors PHP's explicit C0/DEL control-character rejection.
@@ -32,12 +32,12 @@ export async function createOrder(cart: CartMap, values: CheckoutValues, idempot
   if (existing) return { orderNumber: existing.orderNumber, created: false };
   const lines = Object.values(cart);
   if (!lines.length) throw new ApiError(409, 'EMPTY_CART', 'Your bag is empty.');
-  const products = await Product.find({ legacyId: { $in: [...new Set(lines.map((line) => line.productId))] } }).lean();
+  const products = await findProductsByIds(lines.map((line) => line.productId));
   const productById = new Map(products.map((product) => [product.legacyId, product]));
   const items = lines.map((line) => {
     const product = productById.get(line.productId);
     if (!product || product.colour !== line.colour || (product.categorySlug === 'accessories') !== (line.size === 'ONE SIZE')) throw new ApiError(409, 'CART_CHANGED', 'A product in your bag is no longer available. Review your bag and try again.');
-    return { productId: product.legacyId, productSlug: product.slug, productName: product.name, image: product.images[0], size: line.size, colour: line.colour, unitPriceCents: product.priceCents, quantity: line.quantity, lineTotalCents: product.priceCents * line.quantity, _id: new Types.ObjectId() };
+    return { productId: product.legacyId, productSlug: product.slug, productName: product.name, image: product.images[0]!, size: line.size, colour: line.colour, unitPriceCents: product.priceCents, quantity: line.quantity, lineTotalCents: product.priceCents * line.quantity, _id: new Types.ObjectId() };
   });
   const totals = calculateTotals(items.map(({ unitPriceCents, quantity }) => ({ priceCents: unitPriceCents, quantity })));
   const accessCode = randomBytes(24).toString('hex');

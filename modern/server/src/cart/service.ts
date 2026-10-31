@@ -1,5 +1,5 @@
-import { Product } from '../models/Product.js';
 import { ApiError } from '../middleware/errors.js';
+import { findProductByIdentifier, findProductsByIds } from '../catalogue/repository.js';
 
 export type CartLine = { productId: number; size: string; colour: string; quantity: number };
 export type CartMap = Record<string, CartLine>;
@@ -17,7 +17,7 @@ export function calculateTotals(lines: { priceCents: number; quantity: number }[
 export async function cartDto(cart: CartMap) {
   const ids = [...new Set(Object.values(cart).map((line) => line.productId))];
   if (!ids.length) return { items: [], ...calculateTotals([]) };
-  const products = await Product.find({ legacyId: { $in: ids } }).populate('categoryRef', 'name slug').lean();
+  const products = await findProductsByIds(ids);
   const byId = new Map(products.map((product) => [product.legacyId, product]));
   const items = Object.entries(cart).flatMap(([key, line]) => {
     const product = byId.get(line.productId);
@@ -35,7 +35,7 @@ export async function validateCartLine(input: unknown) {
   const colour = typeof body.colour === 'string' ? body.colour.trim() : '';
   const quantity = parseQuantity(body.quantity);
   if (productId === null || !['S','M','L','XL','ONE SIZE'].includes(size) || !colour || colour.length > 50 || quantity === null) throw new ApiError(422, 'INVALID_CART_ITEM', 'Select a valid product option and quantity from 1 to 99.');
-  const product = await Product.findOne({ legacyId: productId }).lean();
+  const product = await findProductByIdentifier(productId);
   if (!product || product.colour !== colour || (product.categorySlug === 'accessories') !== (size === 'ONE SIZE')) throw new ApiError(422, 'INVALID_CART_ITEM', 'The selected product option is no longer available.');
   return { productId, size, colour, quantity } satisfies CartLine;
 }

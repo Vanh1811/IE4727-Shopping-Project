@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calculateTotals, cartKey, parseQuantity } from './service.js';
+
+process.env.SESSION_SECRET = 'cart-service-test-secret-at-least-32-characters';
+const { calculateTotals, cartKey, parseQuantity } = await import('./service.js');
 
 test('cart quantity accepts 1, 2, and 99 and rejects invalid limits', () => {
   assert.equal(parseQuantity(1), 1);

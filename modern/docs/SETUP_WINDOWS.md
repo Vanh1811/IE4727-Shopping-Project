@@ -40,7 +40,7 @@ npm run db:init
 npm run db:preflight
 ```
 
-It refuses the `f2b_shop` Base Version database. The catalogue `db:seed` command is still Mongo-backed in this migration checkpoint and will move to MySQL in Stage B. Initialize MongoDB only for the still-unmigrated catalogue/order/staff repositories, then:
+It refuses the `f2b_shop` Base Version database. `db:seed` now performs non-destructive catalogue-only upserts into the configured Modern database and never clears orders or sessions. MongoDB is still temporarily used by order and staff repositories until their later migration stages. Initialize it only for those remaining repository paths, then:
 
 ```powershell
 npm run db:seed
@@ -70,4 +70,4 @@ npm run test:e2e
 
 If Playwright cannot find its pinned Chromium build, run `npx playwright install chromium` when disk space permits. `PLAYWRIGHT_CHROMIUM_EXECUTABLE` can point to an already installed compatible Chromium executable for local verification.
 
-`db:seed` will be implemented after the SQL catalogue has been parsed and verified in Stage 2. Never point the modern server at the PHP MySQL write path. No database reset command is provided.
+The MongoDB-backed portions of the Modern Version will be removed as the remaining migration stages complete. Never point the modern server at the PHP MySQL write path. No database reset command is provided.

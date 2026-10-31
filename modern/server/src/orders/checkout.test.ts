@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validateCheckout } from './checkout.js';
+
+process.env.SESSION_SECRET = 'checkout-service-test-secret-at-least-32-characters';
+const { validateCheckout } = await import('./checkout.js');
 
 const valid = { full_name: 'Ada Customer', email: 'ada@example.test', phone: '+65 8123 4567', postal_code: '123456', delivery_address: '1 Sample Street', special_instructions: '' };
 

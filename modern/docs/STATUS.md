@@ -23,6 +23,12 @@ Baseline: `68545781decb4ac6bbebe50e1d592df287e74006` (`main` at kickoff). Source
 - Stage A MySQL schema/session integration: BLOCKED until valid local credentials are placed in ignored `server/.env`; do not paste credentials into chat or commit them. `db:init` was not run and no schema was created.
 - Current phase: Stage A code complete; database-backed verification awaits local MySQL authentication. Stages B–F are next.
 - Stage A commit/push: PASS — `979ae2a` (`feat(modern): introduce MySQL schema and session foundation`), pushed to `feature/modern-express-mysql`.
+- Stage B implementation: PASS — catalogue list/detail/home/meta queries and current cart/checkout product lookups now use parameterized MySQL; fixed sort allowlist, LIKE wildcard escaping, exact decimal price bounds, and non-destructive SQL catalogue upserts preserve the existing endpoints and DTOs.
+- Stage B `npm run build`, `npm run typecheck`, `npm run lint`: PASS.
+- Stage B `npm run test`: PASS — 28 tests, including SQL catalogue filter behavior and exact decimal conversion.
+- Stage B `npm run test:e2e`: PASS — all 6 Chromium checks against the local Modern server.
+- Stage B `npm run db:seed`: BLOCKED — local XAMPP rejects `root` with an empty password (`Access denied ... using password: NO`). Seed performed no writes. The catalogue API against persisted SQL rows and the seed replay remain unverified until valid credentials are configured in ignored `modern/server/.env`.
+- Current phase: Stage B code complete; continue with Stage C SQL order persistence. MySQL-backed behavior remains environment-blocked until credentials/schema are available.
 
 ## Stage 0 — baseline and parity contract
 

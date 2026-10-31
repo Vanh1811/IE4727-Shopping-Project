@@ -1,6 +1,6 @@
 # Modern API contract
 
-All API routes are prefixed `/api/v1`; errors use JSON and never fall through to SPA HTML. Responses use `{ data, error }` and do not expose Mongo ObjectIds for product access; catalogue product IDs are stable legacy numeric IDs.
+All API routes are prefixed `/api/v1`; errors use JSON and never fall through to SPA HTML. Responses use `{ data, error }`; catalogue product IDs remain stable legacy numeric IDs and no storage-layer identifier is exposed.
 
 ## Stage 1 endpoints
 
@@ -43,13 +43,13 @@ Cart, order, mock-up and staff endpoints will be added in their owning stages.
 
 | Method/path | Auth | Behavior |
 |---|---|---|
-| `GET /api/v1/cart` | Guest session | Server session cart with current product snapshots and totals recomputed from Mongo prices. Empty cart is valid without Mongo catalogue lookups. |
+| `GET /api/v1/cart` | Guest session | Server session cart with current product snapshots and totals recomputed from current MySQL catalogue prices. Empty cart is valid. |
 | `POST /api/v1/cart/items` | Session + CSRF | Validates current product, exact source colour, apparel/accessory size, quantity 1–99. Same variant combines up to 99. |
 | `PATCH /api/v1/cart/items/:key` | Session + CSRF | Changes one existing line quantity after revalidating the catalogue option. |
 | `DELETE /api/v1/cart/items/:key`, `DELETE /api/v1/cart` | Session + CSRF | Removes one variant or clears the bag. |
 | `GET /api/v1/checkout` | Guest session | Returns current bag and totals; empty bags return `409 EMPTY_CART`. |
-| `POST /api/v1/checkout` | Session + CSRF + `Idempotency-Key` | Uses the PHP field names/messages/limits, fetches current prices, creates an immutable order snapshot and clears the session cart only after the Mongo transaction commits. Initial state is `ORDER_PLACED`; this does not charge or confirm payment. The optional local receipt runs after commit and never gates order success. |
-| `GET /api/v1/orders/:orderNumber/confirmation` | Session-scoped order access | Returns saved totals/snapshots; initial raw 48-hex guest access code is consumed from the session on first read and is never stored in Mongo. Response is `no-store`. |
+| `POST /api/v1/checkout` | Session + CSRF + `Idempotency-Key` | Uses the PHP field names/messages/limits, fetches current MySQL prices, creates an immutable order snapshot and clears the session cart only after commit. Initial state is `ORDER_PLACED`; this does not charge or confirm payment. The optional local receipt runs after commit and never gates order success. |
+| `GET /api/v1/orders/:orderNumber/confirmation` | Session-scoped order access | Returns saved totals/snapshots; initial raw 48-hex guest access code is consumed from the session on first read and is never stored in a database. Response is `no-store`. |
 
 Cart lines contain only product ID, size, colour and quantity in the session. Subtotal, 10% discount, $5 delivery for nonempty carts and total use integer cents; discount rounds half up to match PHP `round()` for nonnegative values.
 
@@ -68,7 +68,7 @@ Cart lines contain only product ID, size, colour and quantity in the session. Su
 | `GET /api/v1/orders` | Session-scoped guest authorization | Lists only orders granted to the current session; an unauthenticated session receives an empty list. |
 | `GET /api/v1/orders/:orderNumber` | Session-scoped guest authorization | Returns only an order number present in the current session. Knowing an order number is insufficient. |
 
-Access codes are 24 cryptographically random bytes (48 lowercase hex characters); Mongo stores only SHA-256. Lookup accepts at most 128 characters and is limited to 10 failed attempts per 15 minutes per client IP. Successful recovery rotates the session ID.
+Access codes are 24 cryptographically random bytes (48 lowercase hex characters); persistence stores only SHA-256. Lookup accepts at most 128 characters and is limited to 10 failed attempts per 15 minutes per client IP. Successful recovery rotates the session ID.
 
 ## Stage 6 staff and design workflow
 

@@ -1,6 +1,3 @@
-import type { FilterQuery, SortOrder } from 'mongoose';
-import type { ProductRecord } from '../models/Product.js';
-
 const legacyCategories = ['t-shirts', 'shirts', 'hoodies', 'jackets', 'pants', 'accessories'];
 
 export interface CatalogueQuery {
@@ -15,8 +12,9 @@ export interface CatalogueQuery {
 }
 
 export interface FilterResult {
-  filter: FilterQuery<ProductRecord>;
-  sort: Record<string, SortOrder>;
+  whereSql: string;
+  parameters: (string | number)[];
+  orderBy: string;
   sortKey: string;
   page: number;
   limit: number;
@@ -28,6 +26,23 @@ export interface FilterResult {
 
 function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+export function legacyLikePattern(search: string): string {
+  let pattern = '';
+  for (let index = 0; index < search.length; index += 1) {
+    const character = search[index]!;
+    if (character === '\\' && index + 1 < search.length) {
+      const next = search[index + 1]!;
+      pattern += ['!', '%', '_'].includes(next) ? `!${next}` : next;
+      index += 1;
+    } else if (character === '!') {
+      pattern += '!!';
+    } else {
+      pattern += character;
+    }
+  }
+  return `%${pattern}%`;
 }
 
 /** Preserve MySQL LIKE's `%` and `_` search wildcards from the PHP catalogue. */
@@ -63,21 +78,31 @@ function normalizeBound(raw: string | null, boundary: 'min' | 'max'): { cents: n
   };
 }
 
-const sortOptions: Record<string, Record<string, SortOrder>> = {
-  featured: { isTopSelling: -1, isNew: -1, legacyId: 1 },
-  newest: { legacyCreatedAt: -1, legacyId: -1 },
-  price_asc: { priceCents: 1, legacyId: 1 },
-  price_desc: { priceCents: -1, legacyId: -1 },
+const sortOptions: Record<string, string> = {
+  featured: 'p.is_top_selling DESC, p.is_new DESC, p.id ASC',
+  newest: 'p.created_at DESC, p.id DESC',
+  price_asc: 'p.price ASC, p.id ASC',
+  price_desc: 'p.price DESC, p.id DESC',
 };
 
 export function buildCatalogueFilter(query: CatalogueQuery, availableColours: string[]): FilterResult {
-  const filter: FilterQuery<ProductRecord> = {};
+  const conditions: string[] = [];
+  const parameters: (string | number)[] = [];
   const categories = [...new Set(query.categories)].filter((category) => legacyCategories.includes(category));
   const requestedColours = new Set(query.colours.map((colour) => colour.toLocaleLowerCase()));
   const colours = [...new Set(availableColours.filter((colour) => requestedColours.has(colour.toLocaleLowerCase())))];
-  if (query.search.trim()) filter.name = legacyLikeRegex(query.search.trim());
-  if (categories.length) filter.categorySlug = { $in: categories };
-  if (colours.length) filter.colour = { $in: colours };
+  if (query.search.trim()) {
+    conditions.push("p.name LIKE ? ESCAPE '!'");
+    parameters.push(legacyLikePattern(query.search.trim()));
+  }
+  if (categories.length) {
+    conditions.push(`c.slug IN (${categories.map(() => '?').join(',')})`);
+    parameters.push(...categories);
+  }
+  if (colours.length) {
+    conditions.push(`p.colour IN (${colours.map(() => '?').join(',')})`);
+    parameters.push(...colours);
+  }
 
   const minimum = normalizeBound(query.minPrice, 'min');
   const maximum = normalizeBound(query.maxPrice, 'max');
@@ -87,15 +112,20 @@ export function buildCatalogueFilter(query: CatalogueQuery, availableColours: st
   const validPriceRange = minimum.cents === null || maximum.cents === null || minimum.cents <= maximum.cents;
   if (!validPriceRange) notice = 'Minimum price cannot be greater than maximum price.';
   if (validPriceRange && (minimum.cents !== null || maximum.cents !== null)) {
-    filter.priceCents = {
-      ...(minimum.cents === null ? {} : { $gte: minimum.cents }),
-      ...(maximum.cents === null ? {} : { $lte: maximum.cents }),
-    };
+    if (minimum.cents !== null) {
+      conditions.push('p.price >= ?');
+      parameters.push(`${Math.floor(minimum.cents / 100)}.${String(minimum.cents % 100).padStart(2, '0')}`);
+    }
+    if (maximum.cents !== null) {
+      conditions.push('p.price <= ?');
+      parameters.push(`${Math.floor(maximum.cents / 100)}.${String(maximum.cents % 100).padStart(2, '0')}`);
+    }
   }
 
   return {
-    filter,
-    sort: sortOptions[query.sort] ?? sortOptions.featured,
+    whereSql: conditions.length ? ` WHERE ${conditions.join(' AND ')}` : '',
+    parameters,
+    orderBy: sortOptions[query.sort] ?? sortOptions.featured,
     sortKey: Object.hasOwn(sortOptions, query.sort) ? query.sort : 'featured',
     page: query.page,
     limit: query.limit,
